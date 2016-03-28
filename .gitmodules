@@ -4,3 +4,6 @@
 [submodule "ndn-cxx"]
 	path = ndn-cxx
 	url = https://github.com/named-data-ndnSIM/ndn-cxx
+[submodule "NLSR"]
+	path = NLSR
+	url = https://github.com/anilj1/NLSR
