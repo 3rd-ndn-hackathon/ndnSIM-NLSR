@@ -21,6 +21,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <stdio.h>
+#include <string>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/property_tree/info_parser.hpp>
@@ -43,6 +45,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <set>
 #include <map>
+#include <vector>
 
 namespace ns3 {
 
@@ -53,9 +56,99 @@ NS_LOG_COMPONENT_DEFINE ("NdnNlsrConfigGen");
 
 // #################### Bulk Config Reader ####################
 bool
-ProcessBulkConfig()
+ProcessRouterList(const std::string &file)
 {
-  std::string bulk_config = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_bulk.conf";
+  std::string bulk_config = "src/ndnSIM/examples/ndn-nlsr-conf/router_list.conf";
+  ifstream topgen;
+  topgen.open (bulk_config.c_str ());
+  typedef vector<std::string> nodeList;
+  nodeList rtrList;
+  std::string rtrId;
+
+  if ( !topgen.is_open () || !topgen.good () ) {
+    NS_FATAL_ERROR ("Cannot open file " << bulk_config << " for reading");
+    return false;
+  }
+
+  while (!topgen.eof ()) {
+    string line;
+    getline (topgen, line);
+
+    if (line == "router-list") 
+      break;
+  }
+
+  if (topgen.eof ()) {
+    NS_FATAL_ERROR ("Bulk config file " << bulk_config << " does not have \"router-list\" section");
+    return false;
+  }
+
+  while (!topgen.eof ()) {
+    std::string line;
+    getline (topgen,line);
+
+    if (line[0] == ';' || line.empty()) 
+      continue;
+
+    NS_LOG_INFO ("Router list: " << line);
+    char* str = strtok ((char*)line.c_str(), " ");
+    while (str != NULL) {
+      rtrList.push_back(std::string(str));
+      str = strtok (NULL, " ");
+    }
+  }
+
+  // Print all Ids.
+  ofstream of (file.c_str ());
+  int size = rtrList.size();
+
+  of << ";" << endl;
+  of << ";This is a bulk configuration file. Each of the router configuration is provided" << endl;
+  of << ";under 'ndn-router' tag. Each line contains a unique router config." << endl;
+  of << ";" << endl;
+  of << "ndn-routers" << endl;
+  of << ";node-id city latitude longitude network site router lsa-refresh-time router-dead-interval lsa-interest-lifetime log-level log-dir seq-dir hello-retries hello-timeout hello-interval adj-lsa-build-interval first-hello-interval state radius angle max-faces-per-prefix routing-calc-interval prefix1 prefix2" << endl;
+
+  for (int i = 0; i < size; ++i) {
+    std::string srcRtr = rtrList[i];
+    std::string rtrName = rtrList[i];
+    std::transform(rtrName.begin(), rtrName.end(), rtrName.begin(), ::tolower);
+    std::string logDir = "/home/anilj1/log/" + rtrName + "/nlsr";
+    std::string seqDir = "/home/anilj1/log/" + rtrName + "/nlsr";
+    std::string prfx1 = "/ndn/edu/" + rtrName + "/cs/netlab";
+    std::string prfx2 = "/ndn/edu/" + rtrName + "/cs/sensorlab";
+
+    of << srcRtr << " " << "NA" << " " << "3" << " " << "1" << " " << "/ndn" << " " << "/edu/" << rtrName << " " << "/%C1.Router/cs/" << rtrName << "rtr" << " " << "1800 3600 4 INFO" << " " << logDir << " " << seqDir << " " << "2 5 60 5 10 off 123.456 1.45 3 15 " << " " << prfx1 << " " << prfx2 << endl;
+  }
+
+  // Build the adjacency matrix. This is a MESH topology (NxN).
+  of << endl;
+  of << ";Each of the link adjacency configuration is provided under 'adjacency-matric' tag." << endl;
+  of << ";Each of the line contains a link specification connecting two router nodes." << endl;
+  of << ";" << endl;
+  of << "adjacency-matrix" << endl;
+  of << ";src-node-id dst-node-id name face-uri link-cost bandwidth metric delay queue" << endl;
+  for (int i = 0; i < size; ++i) {
+    std::string srcRtr = rtrList[i];
+      for (int j = 0; j < size; ++j) {
+        std::string dstRtr = rtrList[j];
+        std::string dstRtrName = rtrList[j];
+        std::transform(dstRtrName.begin(), dstRtrName.end(), dstRtrName.begin(), ::tolower);
+	if (srcRtr.compare(dstRtr) != 0) {
+          of << srcRtr << " " << dstRtr << " " << "/ndn/edu/" << dstRtrName << "/%C1.Router/cs/" << dstRtrName << "rtr" << " " << "tcp4://10.0.0." << j << ":6363" << " " << "25 100 1 0 1000"<< endl;
+	}
+      }
+  }
+
+  of.flush();
+  of.close();
+  return true;
+}
+
+bool
+ProcessBulkConfig(std::string confFile)
+{
+  std::string bulk_config = confFile;
   ifstream topgen;
   topgen.open (bulk_config.c_str ());
   typedef map<std::string, pt::ptree> nodeConfigMap;
@@ -145,6 +238,8 @@ ProcessBulkConfig()
       NS_LOG_ERROR ("Bulk config file " << bulk_config << " does not have \"adjacency matrix\" section");
       return false;
     }
+
+    linebuffer.str("");
   }
 
   while (!topgen.eof()) {
@@ -161,7 +256,7 @@ ProcessBulkConfig()
     if (srcNodeId.empty ()) 
       continue;
 
-    NS_LOG_DEBUG ("Adjacenct router: " << srcNodeId << " " << dstNodeId << " " << name << " " << faceUri << " " << linkCost << " " << bandwidth << " " << metric << " " << delay << " " << queue);
+    NS_LOG_DEBUG ("Adjacent router: " << srcNodeId << " " << dstNodeId << " " << name << " " << faceUri << " " << linkCost << " " << bandwidth << " " << metric << " " << delay << " " << queue);
 
     nodeConfigMap::iterator it = nodeMap.find(srcNodeId);
     if (it != nodeMap.end()) {
@@ -180,6 +275,7 @@ ProcessBulkConfig()
       nbr.add_child("neighbor", nb);
     }
     srcNodeId.clear();
+    linebuffer.str("");
   }
 
   // Generate the NLSR configuration file
@@ -208,7 +304,11 @@ ProcessBulkConfig()
 int
 main (int argc, char *argv[])
 {
-  ProcessBulkConfig();
+  std::string bulk_config = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_bulk.conf";
+
+  ProcessRouterList(bulk_config);
+  ProcessBulkConfig(bulk_config);
+
   return 0;
 }
 
