@@ -981,11 +981,12 @@ NlsrConfReader::WriteGraphviz (const std::string &file)
 {
   ofstream of (file.c_str ());
 
-  of << "graph G {" << endl;
+  of << "digraph G {" << endl;
+  of << "rankdir=LR;" << endl;
   for (NodeContainer::Iterator node = m_nodes.Begin ();
        node != m_nodes.End ();
        node++) {
-    of << (*node)->GetId() << "[width=0.1, label=\"" << 
+    of << ns3::Names::FindName((*node)) << "[width=0.1, label=\"" << 
 	  ns3::Names::FindName((*node)) << 
 	  "\", style=filled, fillcolor=\"green\"]" << endl;
   }
@@ -993,8 +994,8 @@ NlsrConfReader::WriteGraphviz (const std::string &file)
   for (std::list<Link>::const_iterator link = m_linksList.begin ();
        link != m_linksList.end ();
        link ++) {
-    of << (*link->GetFromNode()).GetId() << " -- "
-       << (*link->GetToNode()).GetId()  
+    of << ns3::Names::FindName((link->GetFromNode())) << "->"
+       << ns3::Names::FindName((link->GetToNode()))  
        << "[label=\"" << link->GetAttribute("LinkCost") << "\"]" << endl;
   }
   of << "}" << endl;

@@ -146,6 +146,197 @@ ProcessRouterList(const std::string &file)
 }
 
 bool
+ProcessBriteTopology(std::string confFile)
+{
+  std::string brite_topo_file = confFile;
+  ifstream topgen;
+  topgen.open (brite_topo_file.c_str ());
+  typedef map<std::string, pt::ptree> nodeConfigMap;
+  nodeConfigMap nodeMap;
+
+  if ( !topgen.is_open () || !topgen.good () ) {
+    NS_FATAL_ERROR ("Cannot open file " << brite_topo_file << " for reading");
+    return false;
+  }
+
+  while (!topgen.eof ()) {
+    string line;
+    getline (topgen, line);
+    NS_LOG_INFO ("Brite config line: " << line);
+
+    if (line.compare(0, 6, "Nodes:") == 0) 
+      break;
+  }
+
+  if (topgen.eof ()) {
+    NS_FATAL_ERROR ("BRITE topology config file " << brite_topo_file << " does not have \"Nodes\" section");
+    return false;
+  }
+
+  // Read network 'Node' configuration.
+  while (!topgen.eof ()) {
+    string line;
+    getline (topgen,line);
+
+    if (line[0] == ';') 
+      continue;
+    if (line.compare(0, 6, "Edges:") == 0) 
+      break;
+
+    istringstream linebuffer(line);
+    std::string nodeId, xpos, ypos, indegree, outdegree, asid, type;
+    linebuffer >> nodeId >> xpos >> ypos >> indegree >> outdegree >> asid >> type;
+
+    if (nodeId.empty ()) 
+      continue;
+
+    std::string city = "NA";
+    std::string latitude = "3";
+    std::string longitude = "1";
+    std::string network = "/ndn";
+    std::string site = "/edu";
+    std::string router = "/%C1.Router/cs/node" + nodeId;
+    std::string lsaRefreshTime = "1800";
+    std::string routerDeadInterval = "3600";
+    std::string lsaInterestLifetime = "4";
+    std::string logLevel = "INFO";
+    std::string logDir = "/home/anilj1/log/node" + nodeId + "/nlsr";
+    std::string seqDir = "/home/anilj1/log/node" + nodeId + "/nlsr";
+    std::string helloRetries = "2";
+    std::string helloTimeout = "5";
+    std::string helloInterval = "60";
+    std::string adjLsaBuildInterval = "5";
+    std::string firstHelloInterval = "10";
+    std::string state = "off";
+    std::string radius = "123.456";
+    std::string angle = "1.45";
+    std::string maxFacesPerPrefix = "3";
+    std::string routingCalcInterval = "15";
+    std::string prefix1 = "/ndn/edu/node" + nodeId + "/cs/netlab";
+    std::string prefix2 = "/ndn/edu/node" + nodeId + "/cs/sensorlab";
+
+    NS_LOG_DEBUG ("Router: " << nodeId << " " << city << " " << latitude << " " << longitude << " " << network << " " << site << " " << router << " " << lsaRefreshTime << " " << routerDeadInterval << " " << lsaInterestLifetime << " " << logLevel << " " << logDir << " " << seqDir << " " << helloRetries << " " << helloTimeout << " " << helloInterval << " " << adjLsaBuildInterval << " " << firstHelloInterval << " " << state << " " << radius << " " << angle << " " << maxFacesPerPrefix << " " << routingCalcInterval << " " << prefix1 << " " << prefix2);
+
+    // Add General config
+    pt::ptree nt;
+    nt.put("general.node-id", nodeId);
+    nt.put("general.city", city);
+    nt.put("general.latitude", latitude);
+    nt.put("general.longitude", longitude);
+    nt.put("general.network", network);
+    nt.put("general.site", site);
+    nt.put("general.router", router);
+    nt.put("general.lsa-refresh-time", lsaRefreshTime);
+    nt.put("general.router-dead-interval", routerDeadInterval);
+    nt.put("general.lsa-interest-lifetime", lsaInterestLifetime);
+    nt.put("general.log-level", logLevel);
+    nt.put("general.log-dir", logDir);
+    nt.put("general.seq-dir", seqDir);
+
+    // Add Neighbors config
+    nt.put("neighbors.hello-retries", helloRetries);
+    nt.put("neighbors.hello-timeout", helloTimeout);
+    nt.put("neighbors.hello-interval", helloInterval);
+    nt.put("neighbors.adj-lsa-build-interval", adjLsaBuildInterval);
+    nt.put("neighbors.first-hello-interval", firstHelloInterval);
+
+    // Add Hyperbolic config
+    nt.put("hyperbolic.state", state);
+    nt.put("hyperbolic.radius", radius);
+    nt.put("hyperbolic.angle", angle);
+
+    // Add Fib config
+    nt.put("fib.max-faces-per-prefix", maxFacesPerPrefix);
+    nt.put("fib.routing-calc-interval", routingCalcInterval);
+
+    // Add Advertising config
+    nt.add("advertising.prefix", prefix1);
+    nt.add("advertising.prefix", prefix2);
+
+    // Add Security config
+    nt.put("security.validator.trust-anchor.type", "any");
+    nt.put("security.prefix-update-validator.trust-anchor.type", "any");
+
+    // Save the tree object for later on.
+    nodeMap[nodeId] = nt;
+
+    if (topgen.eof ()) {
+      NS_FATAL_ERROR ("BRITE topology config file " << brite_topo_file << " does not have \"Edge\" section");
+      return false;
+    }
+
+    linebuffer.str("");
+  }
+
+  // Read network 'Link' configuration.
+  while (!topgen.eof()) {
+    string line;
+    getline (topgen,line);
+
+    if (line[0] == ';') 
+      continue;
+
+    istringstream linebuffer(line);
+    std::string edgeId, srcNodeId, dstNodeId, length, delay, bandwidth, asfrom, asto, type, unknown;
+    linebuffer >> edgeId >> srcNodeId >> dstNodeId >> length >> delay >> bandwidth >> asfrom >> asto >> type >> unknown;
+
+    if (edgeId.empty ()) 
+      continue;
+
+    std::string name = "/ndn/edu/node" + dstNodeId + "/%C1.Router/cs/node" + dstNodeId + "rtr";
+    std::string faceUri = "tcp4://10.0.0." + edgeId + ":6363";
+    std::string linkCost = "25";
+    //std::string length = length.substr(0, length.find('.', 0) + 3);
+    bandwidth = bandwidth.substr(0, bandwidth.find('.', 0) + 3);
+    std::string metric = "1";
+    delay = delay.substr(0, delay.find('.', 0) + 3);
+    std::string queue = "1000";
+
+    NS_LOG_DEBUG ("Adjacent router: " << srcNodeId << " " << dstNodeId << " " << name << " " << faceUri << " " << linkCost << " " << bandwidth << " " << metric << " " << delay << " " << queue);
+
+    nodeConfigMap::iterator it = nodeMap.find(srcNodeId);
+    if (it != nodeMap.end()) {
+      auto& nbr = (it->second).get_child("neighbors");
+
+      // Add neighbor
+      pt::ptree nb;
+      nb.add("node-id", dstNodeId);
+      nb.add("name", name);
+      nb.add("face-uri", faceUri);
+      nb.add("link-cost", linkCost);
+      nb.add("bandwidth", bandwidth);
+      nb.add("metric", metric);
+      nb.add("delay", delay);
+      nb.add("queue", queue);
+      nbr.add_child("neighbor", nb);
+    }
+    srcNodeId.clear();
+    linebuffer.str("");
+  }
+
+  // Generate the NLSR configuration file
+  for (nodeConfigMap::iterator it = nodeMap.begin(); it != nodeMap.end(); ++it) {
+    std::string filename = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_node_" + it->first + ".conf";
+    pt::write_info(filename, it->second); 
+  }
+
+  // Generate topology config file.
+  std::string sim_config = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_sim.conf";
+  pt::ptree simTree;
+  for (nodeConfigMap::iterator itr = nodeMap.begin(); itr != nodeMap.end(); ++itr) {
+    std::string filename = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_node_" + itr->first + ".conf";
+    pt::ptree nodeTree;
+    nodeTree.add("node-id", itr->first);
+    nodeTree.add("nlsr-config", filename);
+    simTree.add_child("ndn-node", nodeTree);
+  }
+
+  pt::write_info(sim_config, simTree); 
+
+  return true;
+}
+
+bool
 ProcessBulkConfig(std::string confFile)
 {
   std::string bulk_config = confFile;
@@ -304,11 +495,35 @@ ProcessBulkConfig(std::string confFile)
 int
 main (int argc, char *argv[])
 {
-  std::string bulk_config = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_bulk.conf";
+  std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/25_node_router.brite";
 
-  ProcessRouterList(bulk_config);
-  ProcessBulkConfig(bulk_config);
+#if 0
+  std::cout << "No of arguments are: " << argc << endl;
+  if (argc < 3) {
+    std::cout << "Not enough or invalid arguments, usage is.\n";
+    std::cout << "Usage is -t <topo file>\n";
+    std::cin.get();
+    exit(0);
+  } else {
+    std::cout << argv[0];
+    for (int i = 1; i < argc; i++) {
+      if (i + 1 != argc) {
+        if (strcmp (argv[i], "-t") == 0) {
+          brite_topo = argv[i + 1];
+          std::cout << "Topology file is: " << brite_topo;
+        } else {
+          std::cout << "Not enough or invalid arguments, please try again.\n";
+          sleep(2000); 
+          exit(0);
+        }
+      }
+    }
+    std::cin.get();
+    return 0;
+  }
+#endif
 
+  ProcessBriteTopology(brite_topo);
   return 0;
 }
 
