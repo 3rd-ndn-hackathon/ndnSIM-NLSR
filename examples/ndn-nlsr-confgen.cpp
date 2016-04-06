@@ -190,18 +190,19 @@ ProcessBriteTopology(std::string confFile)
     if (nodeId.empty ()) 
       continue;
 
+    nodeId = "N" + nodeId;
     std::string city = "NA";
     std::string latitude = "3";
     std::string longitude = "1";
     std::string network = "/ndn";
-    std::string site = "/edu";
-    std::string router = "/%C1.Router/cs/node" + nodeId;
+    std::string site = "/edu/" + nodeId;
+    std::string router = "/%C1.Router/cs/" + nodeId + "rtr";
     std::string lsaRefreshTime = "1800";
     std::string routerDeadInterval = "3600";
     std::string lsaInterestLifetime = "4";
     std::string logLevel = "INFO";
-    std::string logDir = "/home/anilj1/log/node" + nodeId + "/nlsr";
-    std::string seqDir = "/home/anilj1/log/node" + nodeId + "/nlsr";
+    std::string logDir = "/home/anilj1/log/" + nodeId + "/nlsr";
+    std::string seqDir = "/home/anilj1/log/" + nodeId + "/nlsr";
     std::string helloRetries = "2";
     std::string helloTimeout = "5";
     std::string helloInterval = "60";
@@ -212,8 +213,8 @@ ProcessBriteTopology(std::string confFile)
     std::string angle = "1.45";
     std::string maxFacesPerPrefix = "3";
     std::string routingCalcInterval = "15";
-    std::string prefix1 = "/ndn/edu/node" + nodeId + "/cs/netlab";
-    std::string prefix2 = "/ndn/edu/node" + nodeId + "/cs/sensorlab";
+    std::string prefix1 = "/ndn/edu/" + nodeId + "/cs/netlab";
+    std::string prefix2 = "/ndn/edu/" + nodeId + "/cs/sensorlab";
 
     NS_LOG_DEBUG ("Router: " << nodeId << " " << city << " " << latitude << " " << longitude << " " << network << " " << site << " " << router << " " << lsaRefreshTime << " " << routerDeadInterval << " " << lsaInterestLifetime << " " << logLevel << " " << logDir << " " << seqDir << " " << helloRetries << " " << helloTimeout << " " << helloInterval << " " << adjLsaBuildInterval << " " << firstHelloInterval << " " << state << " " << radius << " " << angle << " " << maxFacesPerPrefix << " " << routingCalcInterval << " " << prefix1 << " " << prefix2);
 
@@ -283,17 +284,20 @@ ProcessBriteTopology(std::string confFile)
     if (edgeId.empty ()) 
       continue;
 
-    std::string name = "/ndn/edu/node" + dstNodeId + "/%C1.Router/cs/node" + dstNodeId + "rtr";
+    srcNodeId = "N" + srcNodeId;
+    dstNodeId = "N" + dstNodeId;
+    std::string name = "/ndn/edu/" + dstNodeId + "/%C1.Router/cs/" + dstNodeId + "rtr";
     std::string faceUri = "tcp4://10.0.0." + edgeId + ":6363";
     std::string linkCost = "25";
     //std::string length = length.substr(0, length.find('.', 0) + 3);
-    bandwidth = bandwidth.substr(0, bandwidth.find('.', 0) + 3);
+    bandwidth = "100"; //bandwidth.substr(0, bandwidth.find('.', 0) + 3);
     std::string metric = "1";
-    delay = delay.substr(0, delay.find('.', 0) + 3);
+    delay = "0"; //delay.substr(0, delay.find('.', 0) + 3);
     std::string queue = "1000";
 
     NS_LOG_DEBUG ("Adjacent router: " << srcNodeId << " " << dstNodeId << " " << name << " " << faceUri << " " << linkCost << " " << bandwidth << " " << metric << " " << delay << " " << queue);
 
+    // Establish full-duplex link between adjacent nodes.
     nodeConfigMap::iterator it = nodeMap.find(srcNodeId);
     if (it != nodeMap.end()) {
       auto& nbr = (it->second).get_child("neighbors");
@@ -310,6 +314,26 @@ ProcessBriteTopology(std::string confFile)
       nb.add("queue", queue);
       nbr.add_child("neighbor", nb);
     }
+
+    it = nodeMap.find(dstNodeId);
+    if (it != nodeMap.end()) {
+
+      // Add neighbor
+      auto& nbr = (it->second).get_child("neighbors");
+      name = "/ndn/edu/" + srcNodeId + "/%C1.Router/cs/" + srcNodeId + "rtr";
+
+      pt::ptree nb;
+      nb.add("node-id", srcNodeId);
+      nb.add("name", name);
+      nb.add("face-uri", faceUri);
+      nb.add("link-cost", linkCost);
+      nb.add("bandwidth", bandwidth);
+      nb.add("metric", metric);
+      nb.add("delay", delay);
+      nb.add("queue", queue);
+      nbr.add_child("neighbor", nb);
+    }
+
     srcNodeId.clear();
     linebuffer.str("");
   }
@@ -495,7 +519,7 @@ ProcessBulkConfig(std::string confFile)
 int
 main (int argc, char *argv[])
 {
-  std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/25_node_router.brite";
+  std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/20_node_router.brite";
 
 #if 0
   std::cout << "No of arguments are: " << argc << endl;
@@ -524,6 +548,9 @@ main (int argc, char *argv[])
 #endif
 
   ProcessBriteTopology(brite_topo);
+  //std::string bulk_config = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_bulk.conf";
+  //ProcessRouterList(bulk_config);
+  //ProcessBulkConfig(bulk_config);
   return 0;
 }
 
