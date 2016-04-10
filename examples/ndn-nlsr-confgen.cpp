@@ -190,13 +190,14 @@ ProcessBriteTopology(std::string confFile)
     if (nodeId.empty ()) 
       continue;
 
+    std::string id = nodeId;
     nodeId = "N" + nodeId;
     std::string city = "NA";
     std::string latitude = "3";
     std::string longitude = "1";
-    std::string network = "/ndn";
-    std::string site = "/edu/" + nodeId;
-    std::string router = "/%C1.Router/cs/" + nodeId + "rtr";
+    std::string network = "/n";
+    std::string site = "/e";
+    std::string router = "/%C1r" + id;
     std::string lsaRefreshTime = "1800";
     std::string routerDeadInterval = "3600";
     std::string lsaInterestLifetime = "4";
@@ -213,8 +214,8 @@ ProcessBriteTopology(std::string confFile)
     std::string angle = "1.45";
     std::string maxFacesPerPrefix = "3";
     std::string routingCalcInterval = "15";
-    std::string prefix1 = "/ndn/edu/" + nodeId + "/cs/netlab";
-    std::string prefix2 = "/ndn/edu/" + nodeId + "/cs/sensorlab";
+    std::string prefix1 = "/n/e/" + nodeId + "/p1";
+    std::string prefix2 = "/n/e/" + nodeId + "/p2";
 
     NS_LOG_DEBUG ("Router: " << nodeId << " " << city << " " << latitude << " " << longitude << " " << network << " " << site << " " << router << " " << lsaRefreshTime << " " << routerDeadInterval << " " << lsaInterestLifetime << " " << logLevel << " " << logDir << " " << seqDir << " " << helloRetries << " " << helloTimeout << " " << helloInterval << " " << adjLsaBuildInterval << " " << firstHelloInterval << " " << state << " " << radius << " " << angle << " " << maxFacesPerPrefix << " " << routingCalcInterval << " " << prefix1 << " " << prefix2);
 
@@ -278,16 +279,18 @@ ProcessBriteTopology(std::string confFile)
       continue;
 
     istringstream linebuffer(line);
-    std::string edgeId, srcNodeId, dstNodeId, length, delay, bandwidth, asfrom, asto, type, unknown;
+    std::string edgeId, srcNodeId, dstNodeId, length, delay, bandwidth, asfrom, asto, type, unknown, srcId, dstId;
     linebuffer >> edgeId >> srcNodeId >> dstNodeId >> length >> delay >> bandwidth >> asfrom >> asto >> type >> unknown;
 
     if (edgeId.empty ()) 
       continue;
 
+    srcId = srcNodeId;
+    dstId = dstNodeId;
     srcNodeId = "N" + srcNodeId;
     dstNodeId = "N" + dstNodeId;
-    std::string name = "/ndn/edu/" + dstNodeId + "/%C1.Router/cs/" + dstNodeId + "rtr";
-    std::string faceUri = "tcp4://10.0.0." + edgeId + ":6363";
+    std::string name = "/n/e/%C1r" + dstId;
+    std::string faceUri = "tcp4://10.0.0." + dstId + ":6363";
     std::string linkCost = "25";
     //std::string length = length.substr(0, length.find('.', 0) + 3);
     bandwidth = "100"; //bandwidth.substr(0, bandwidth.find('.', 0) + 3);
@@ -320,7 +323,8 @@ ProcessBriteTopology(std::string confFile)
 
       // Add neighbor
       auto& nbr = (it->second).get_child("neighbors");
-      name = "/ndn/edu/" + srcNodeId + "/%C1.Router/cs/" + srcNodeId + "rtr";
+      name = "/n/e/%C1r" + srcId;
+      faceUri = "tcp4://10.0.0." + srcId + ":6363";
 
       pt::ptree nb;
       nb.add("node-id", srcNodeId);
@@ -519,7 +523,7 @@ ProcessBulkConfig(std::string confFile)
 int
 main (int argc, char *argv[])
 {
-  std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/20_node_router.brite";
+  std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_router_topo.brite";
 
 #if 0
   std::cout << "No of arguments are: " << argc << endl;
