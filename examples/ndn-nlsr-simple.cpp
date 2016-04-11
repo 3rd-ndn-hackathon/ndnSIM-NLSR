@@ -24,6 +24,8 @@
 #include "ns3/ndnSIM-module.h"
 #include "ns3/log.h"
 
+#include "helper/ndn-nlsr-tracer.hpp"
+
 #include "utils/topology/nlsr-conf-reader.hpp"
 
 namespace ns3 {
@@ -55,6 +57,7 @@ main (int argc, char *argv[])
 {
   CommandLine cmd;
   cmd.Parse (argc, argv);
+  ndn::NlsrTracer &tracer = ndn::NlsrTracer::Instance();
 
   // Creating nodes
   NodeContainer nodes;
@@ -78,7 +81,7 @@ main (int argc, char *argv[])
   // Initialize the NLSR app on nodes.
   nlsrConfReader.InitializeNlsr();
 
-  Simulator::Stop (Seconds (100.0));
+  Simulator::Stop (Seconds (50.0));
 
   ndn::L3RateTracer::InstallAll ("nlsr-l3-rate-trace.txt", Seconds (0.5));
   L2RateTracer::InstallAll ("nlsr-l2-rate-trace.txt");
