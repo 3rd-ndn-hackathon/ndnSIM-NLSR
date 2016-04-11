@@ -52,19 +52,19 @@ public:
   }
 
   void 
-  HelloTrace(const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-");
+  HelloTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
 
   void 
-  NameLsaTrace(const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-");
+  NameLsaTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
 
   void 
-  LinkLsaTrace(const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-");
+  LinkLsaTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
 
   void 
-  NsyncTrace(const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-");
+  NsyncTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
 
   void 
-  FibTrace(const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-", const char* = "-");
+  FibTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
 
 private:
   NlsrTracer() {

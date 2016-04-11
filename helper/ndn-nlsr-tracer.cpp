@@ -46,43 +46,43 @@ NlsrTracer::WriteHeaders() {
 }
 
 void
-NlsrTracer::HelloTrace(const char*, const char*, const char*, const char*, const char*, const char*) {
+NlsrTracer::HelloTrace(const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) {
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
-  of_hello << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << " 3 " << "\t" << " 4 " << "\t" << " 5 " << "\t" << " 6 " << endl; 
+  of_hello << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
 }
 
 void 
-NlsrTracer::NameLsaTrace(const char*, const char*, const char*, const char*, const char*, const char*) {
+NlsrTracer::NameLsaTrace(const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) {
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
-  of_nlsa << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << " 3 " << "\t" << " 4 " << "\t" << " 5 " << "\t" << " 6 " << endl; 
+  of_nlsa << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
 }
 
 void 
-NlsrTracer::LinkLsaTrace(const char*, const char*, const char*, const char*, const char*, const char*) {
+NlsrTracer::LinkLsaTrace(const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) {
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
-  of_llsa << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << " 3 " << "\t" << " 4 " << "\t" << " 5 " << "\t" << " 6 " << endl; 
+  of_llsa << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
 }
 
 void 
-NlsrTracer::NsyncTrace(const char*, const char*, const char*, const char*, const char*, const char*) {
+NlsrTracer::NsyncTrace(const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) {
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
-  of_nsync << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << " 3 " << "\t" << " 4 " << "\t" << " 5 " << "\t" << " 6 " << endl; 
+  of_nsync << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
 }
 
 void 
-NlsrTracer::FibTrace(const char*, const char*, const char*, const char*, const char*, const char*) {
+NlsrTracer::FibTrace(const char* arg1, const char* arg2, const char* arg3, const char* arg4, const char* arg5, const char* arg6) {
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
-  of_fib << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << " 3 " << "\t" << " 4 " << "\t" << " 5 " << "\t" << " 6 " << endl; 
+  of_fib << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
 }
 
 } // namespace ndn
