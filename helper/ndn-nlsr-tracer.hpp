@@ -52,19 +52,19 @@ public:
   }
 
   void 
-  HelloTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
+  HelloTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
   void 
-  NameLsaTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
+  NameLsaTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
   void 
-  LinkLsaTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
+  LinkLsaTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
   void 
-  NsyncTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
+  NsyncTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
   void 
-  FibTrace(const char* agr1 = "-", const char* agr2 = "-", const char* agr3 = "-", const char* agr4 = "-", const char* agr5 = "-", const char* agr6 = "-");
+  FibTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
 private:
   NlsrTracer() {
