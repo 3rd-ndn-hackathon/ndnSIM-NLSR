@@ -57,7 +57,7 @@ main (int argc, char *argv[])
 {
   CommandLine cmd;
   cmd.Parse (argc, argv);
-  ndn::NlsrTracer &tracer = ndn::NlsrTracer::Instance();
+  ndn::NlsrTracer::Instance();
 
   // Creating nodes
   NodeContainer nodes;
