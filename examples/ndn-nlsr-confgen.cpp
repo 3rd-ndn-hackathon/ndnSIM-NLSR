@@ -47,6 +47,10 @@
 #include <map>
 #include <vector>
 
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+
 namespace ns3 {
 
 using namespace std;
@@ -64,6 +68,12 @@ ProcessRouterList(const std::string &file)
   typedef vector<std::string> nodeList;
   nodeList rtrList;
   std::string rtrId;
+  const char *homeDir = NULL;
+
+  if ((homeDir = getenv("HOME")) == NULL) {
+      homeDir = getpwuid(getuid())->pw_dir;
+  }
+  NS_LOG_INFO ("Home dir is: " << homeDir);
 
   if ( !topgen.is_open () || !topgen.good () ) {
     NS_FATAL_ERROR ("Cannot open file " << bulk_config << " for reading");
@@ -113,8 +123,8 @@ ProcessRouterList(const std::string &file)
     std::string srcRtr = rtrList[i];
     std::string rtrName = rtrList[i];
     std::transform(rtrName.begin(), rtrName.end(), rtrName.begin(), ::tolower);
-    std::string logDir = "/home/anilj1/log/" + rtrName + "/nlsr";
-    std::string seqDir = "/home/anilj1/log/" + rtrName + "/nlsr";
+    std::string logDir = std::string(homeDir) + "/log/" + rtrName + "/nlsr";
+    std::string seqDir = std::string(homeDir) + "/log/" + rtrName + "/nlsr";
     std::string prfx1 = "/ndn/edu/" + rtrName + "/cs/netlab";
     std::string prfx2 = "/ndn/edu/" + rtrName + "/cs/sensorlab";
 
@@ -153,6 +163,12 @@ ProcessBriteTopology(std::string confFile)
   topgen.open (brite_topo_file.c_str ());
   typedef map<std::string, pt::ptree> nodeConfigMap;
   nodeConfigMap nodeMap;
+  const char *homeDir = NULL;
+
+  if ((homeDir = getenv("HOME")) == NULL) {
+      homeDir = getpwuid(getuid())->pw_dir;
+  }
+  NS_LOG_INFO ("Home dir is: " << homeDir);
 
   if ( !topgen.is_open () || !topgen.good () ) {
     NS_FATAL_ERROR ("Cannot open file " << brite_topo_file << " for reading");
@@ -202,8 +218,8 @@ ProcessBriteTopology(std::string confFile)
     std::string routerDeadInterval = "3600";
     std::string lsaInterestLifetime = "4";
     std::string logLevel = "INFO";
-    std::string logDir = "/home/anilj1/log/" + nodeId + "/nlsr";
-    std::string seqDir = "/home/anilj1/log/" + nodeId + "/nlsr";
+    std::string logDir = std::string(homeDir) + "/log/" + nodeId + "/nlsr";
+    std::string seqDir = std::string(homeDir) + "/log/" + nodeId + "/nlsr";
     std::string helloRetries = "2";
     std::string helloTimeout = "5";
     std::string helloInterval = "60";
