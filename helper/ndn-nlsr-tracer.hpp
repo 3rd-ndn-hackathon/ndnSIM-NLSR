@@ -55,6 +55,27 @@ public:
   }
 
   void 
+  InitializeTracer(std::string prefix) {
+    boost::filesystem::path full_path(boost::filesystem::current_path());
+    m_helloTracer += full_path.string() + "/" + prefix + "-nlsr-hello-trace.txt";
+    of_hello.open(m_helloTracer.c_str());
+
+    m_nameLsaTracer += full_path.string() + "/" + prefix + "-nlsr-name-lsa-trace.txt";
+    of_nlsa.open(m_nameLsaTracer.c_str()); 
+
+    m_linkLsaTracer += full_path.string() + "/" + prefix + "-nlsr-link-lsa-trace.txt";
+    of_llsa.open(m_linkLsaTracer.c_str()); 
+
+    m_nsyncTracer += full_path.string() + "/" + prefix + "-nlsr-nsync-trace.txt";
+    of_nsync.open(m_nsyncTracer.c_str()); 
+
+    m_fibTracer += full_path.string() + "/" + prefix + "-nlsr-fib-trace.txt";
+    of_fib.open(m_fibTracer.c_str()); 
+
+    WriteHeaders();
+  }
+
+  void 
   HelloTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
   void 
@@ -71,23 +92,6 @@ public:
 
 private:
   NlsrTracer() {
-    boost::filesystem::path full_path(boost::filesystem::current_path());
-    m_helloTracer += full_path.string() + "/nlsr-hello-trace.txt";
-    of_hello.open(m_helloTracer.c_str());
-
-    m_nameLsaTracer += full_path.string() + "/nlsr-name-lsa-trace.txt";
-    of_nlsa.open(m_nameLsaTracer.c_str()); 
-
-    m_linkLsaTracer += full_path.string() + "/nlsr-link-lsa-trace.txt";
-    of_llsa.open(m_linkLsaTracer.c_str()); 
-
-    m_nsyncTracer += full_path.string() + "/nlsr-nsync-trace.txt";
-    of_nsync.open(m_nsyncTracer.c_str()); 
-
-    m_fibTracer += full_path.string() + "/nlsr-fib-trace.txt";
-    of_fib.open(m_fibTracer.c_str()); 
-
-    WriteHeaders();
   }
 
   void WriteHeaders();

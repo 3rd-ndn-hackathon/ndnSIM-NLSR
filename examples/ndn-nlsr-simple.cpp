@@ -57,7 +57,6 @@ main (int argc, char *argv[])
 {
   CommandLine cmd;
   cmd.Parse (argc, argv);
-  ndn::NlsrTracer::Instance();
 
   // Creating nodes
   NodeContainer nodes;
@@ -66,13 +65,17 @@ main (int argc, char *argv[])
   ndn::NlsrConfReader nlsrConfReader("src/ndnSIM/examples/ndn-nlsr-conf/nlsr_sim.conf", 25);
   nodes = nlsrConfReader.Read();
 
+  ns3::ndn::NlsrTracer &tracer = ndn::NlsrTracer::Instance();
+  std::string prefix = std::to_string(nodes.size());
+  tracer.InitializeTracer(prefix);
+
   // Install NLSR app on all nodes.
-  NS_LOG_INFO ("Installing NLSR application on all nodes");
+  NS_LOG_INFO ("Installing NLSR application on " << nodes.size() << " nodes");
   ndn::AppHelper nlsrHelper ("ns3::ndn::NlsrApp");
   nlsrHelper.Install(nodes);
 
   // Install NDN stack on all nodes
-  NS_LOG_INFO ("Installing NDN stack on all nodes");
+  NS_LOG_INFO ("Installing NDN stack on " << nodes.size() << " nodes");
   ndn::StackHelper ndnHelper;
   ndnHelper.Install(nodes);
 
@@ -83,9 +86,9 @@ main (int argc, char *argv[])
 
   Simulator::Stop (Seconds (50.0));
 
-  ndn::L3RateTracer::InstallAll ("nlsr-l3-rate-trace.txt", Seconds (0.5));
-  L2RateTracer::InstallAll ("nlsr-l2-rate-trace.txt");
-  ndn::AppDelayTracer::InstallAll("app-delays-trace.txt");
+  ndn::L3RateTracer::InstallAll ((prefix + "-nlsr-l3-rate-trace.txt"), Seconds (0.5));
+  L2RateTracer::InstallAll ((prefix + "-nlsr-l2-rate-trace.txt"));
+  ndn::AppDelayTracer::InstallAll((prefix + "-nlsr-app-delays-trace.txt"));
 
   Simulator::Run ();
   Simulator::Destroy ();
