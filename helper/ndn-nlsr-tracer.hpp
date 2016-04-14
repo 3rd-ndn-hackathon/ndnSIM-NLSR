@@ -19,6 +19,9 @@
 
 // ndn-nlsr-tracer.hpp
 
+#ifndef _NDN_NLSR_TRACER_H
+#define _NDN_NLSR_TRACER_H
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -110,3 +113,5 @@ private:
 
 } // namespace ndn
 } // namespace ns3
+
+#endif // _NDN_NLSR_TRACER_H

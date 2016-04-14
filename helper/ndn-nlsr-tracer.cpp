@@ -38,11 +38,11 @@ NlsrTracer* NlsrTracer::inst = 0;
 
 void
 NlsrTracer::WriteHeaders() {
-  of_hello << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << endl;
   of_nlsa << "Time" << "\tNode" << "\tFaceId" << "\tFaceDescr" << "\tType" << "\tPackets" << "\tKBytes" << "\tPacketRaw" << endl;
   of_llsa << "Time" << "\tNode" << "\tFaceId" << "\tFaceDescr" << "\tType" << "\tPackets" << "\tKBytes" << "\tPacketRaw" << endl;
-  of_nsync << "Time" << "\tNode" << "\tFaceId" << "\tFaceDescr" << "\tType" << "\tPackets" << "\tKBytes" << "\tPacketRaw" << endl;
-  of_fib << "Time" << "\tNode" << "\tFaceId" << "\tFaceDescr" << "\tType" << "\tPackets" << "\tKBytes" << "\tPacketRaw" << endl;
+  of_hello << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
+  of_nsync << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
+  of_fib << "Time" << "\tNode" << "\tName" << "\tType" << "\tAttempt" << "\t-" << "\t-" << "\t-" << endl;
 }
 
 void
