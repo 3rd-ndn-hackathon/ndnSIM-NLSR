@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 
 #include <ndn-cxx/name.hpp>
 #include <ndn-cxx/util/face-uri.hpp>
@@ -498,6 +499,7 @@ NlsrConfReader::Read(void)
   ProcessConfFile();
   PrintConfig();
   BuildTopology();
+  SetLinkMTUSize();
 
   //SaveGraphviz("nlsr_graph.dot");
   WriteGraphviz("src/ndnSIM/examples/ndn-nlsr-conf/nlsr_topo.dot");
@@ -1095,6 +1097,41 @@ NlsrConfReader::BuildTopology()
   ApplySettings ();
 
   return m_nodes;
+}
+
+void
+NlsrConfReader::SetLinkMTUSize()
+{
+  ns3::PointToPointNetDevice *netDevice = 0;
+  int mtuSize = 8192;
+
+  // MTU can be configured from env variable.
+  char* str = getenv("MTU_SIZE");
+  if (str != NULL) {
+    try {
+      mtuSize = std::stoi(str);
+      NS_LOG_INFO ("MTU size set to: " << mtuSize);
+    } catch (const std::invalid_argument& ia) {
+      NS_LOG_ERROR ("Invalid MTU size configured, using default: 8192");
+    }
+  } else {
+    NS_LOG_INFO ("No MTU specified, using default: 8192");
+  }
+
+  for (NodeContainer::Iterator it = m_nodes.Begin(); it != m_nodes.End(); ++it) {
+    ns3::Ptr<ns3::Node> node = (*it);
+
+    std::string nodeName = ns3::Names::FindName(node);
+    uint32_t numDevices = node->GetNDevices();
+    NS_LOG_INFO ("Node name: " << nodeName << " devices: " << numDevices);
+    for (uint32_t deviceId = 0; deviceId < numDevices; deviceId++) {
+      netDevice = dynamic_cast<ns3::PointToPointNetDevice*>(&(*(node->GetDevice(deviceId))));
+      if (netDevice == NULL)
+	continue;
+
+      netDevice->SetMtu(mtuSize);
+    }
+  }
 }
 
 } // namespace ndn

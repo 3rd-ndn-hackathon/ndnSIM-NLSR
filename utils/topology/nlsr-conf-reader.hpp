@@ -276,6 +276,8 @@ protected:
 
   NodeContainer BuildTopology ();
 
+  void SetLinkMTUSize();
+
 protected:
   std::string m_path;
   NodeContainer m_nodes;
