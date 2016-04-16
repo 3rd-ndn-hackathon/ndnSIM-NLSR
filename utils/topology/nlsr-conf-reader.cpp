@@ -502,7 +502,7 @@ NlsrConfReader::Read(void)
   SetLinkMTUSize();
 
   //SaveGraphviz("nlsr_graph.dot");
-  WriteGraphviz("src/ndnSIM/examples/ndn-nlsr-conf/nlsr_topo.dot");
+  //WriteGraphviz("src/ndnSIM/examples/ndn-nlsr-conf/nlsr_topo.dot");
   return m_nodes;
 }
 

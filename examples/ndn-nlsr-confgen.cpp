@@ -164,6 +164,9 @@ ProcessBriteTopology(std::string confFile)
   typedef map<std::string, pt::ptree> nodeConfigMap;
   nodeConfigMap nodeMap;
   const char *homeDir = NULL;
+  std::string nodeLabel;
+  std::string nlsr_topo;
+  ofstream graphvizfile;
 
   if ((homeDir = getenv("HOME")) == NULL) {
       homeDir = getpwuid(getuid())->pw_dir;
@@ -180,14 +183,32 @@ ProcessBriteTopology(std::string confFile)
     getline (topgen, line);
     NS_LOG_INFO ("Brite config line: " << line);
 
+    if (line.compare(0, 9, "Topology:") == 0)  {
+      std::size_t f1 = line.find_first_of("(", 0);
+      std::size_t f2 = line.find_first_of(" ", f1+2);
+      nodeLabel = line.substr(f1+2, f2-f1-2);
+    }
+ 
     if (line.compare(0, 6, "Nodes:") == 0) 
       break;
+  }
+
+  nlsr_topo = nodeLabel + "-nlsr-topology.dot";
+  graphvizfile.open (nlsr_topo.c_str());
+  if ( !graphvizfile.is_open () || !graphvizfile.good () ) {
+    NS_FATAL_ERROR ("Cannot open file " << nlsr_topo << " for writing");
+    return false;
   }
 
   if (topgen.eof ()) {
     NS_FATAL_ERROR ("BRITE topology config file " << brite_topo_file << " does not have \"Nodes\" section");
     return false;
   }
+
+  // Write Graphviz file header
+  graphvizfile << "graph G {" << endl;
+  graphvizfile << "label=\"" << nodeLabel << " Node Network Topology\";" << endl;
+  graphvizfile << "rankdir=LR;" << endl;
 
   // Read network 'Node' configuration.
   while (!topgen.eof ()) {
@@ -283,6 +304,9 @@ ProcessBriteTopology(std::string confFile)
       return false;
     }
 
+    // Add Nodesto Graphviz (DOT) file.
+    graphvizfile << nodeId << "[width=0.1, label=\"" << nodeId <<  "\", style=filled, fillcolor=\"green\"]" << endl;
+
     linebuffer.str("");
   }
 
@@ -354,9 +378,15 @@ ProcessBriteTopology(std::string confFile)
       nbr.add_child("neighbor", nb);
     }
 
+    // Add Edges to Graphviz (DOT) file.
+    graphvizfile << srcNodeId << "--" << dstNodeId << "[label=\"" << linkCost << "\"]" << endl;
+
     srcNodeId.clear();
     linebuffer.str("");
   }
+
+  graphvizfile << "}" << endl; 
+  graphvizfile.close();
 
   // Generate the NLSR configuration file
   for (nodeConfigMap::iterator it = nodeMap.begin(); it != nodeMap.end(); ++it) {
