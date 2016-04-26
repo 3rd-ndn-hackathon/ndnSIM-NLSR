@@ -156,6 +156,278 @@ ProcessRouterList(const std::string &file)
 }
 
 bool
+ProcessDotTopology(std::string confFile)
+{
+  std::string dot_topo_file = confFile;
+  ifstream topgen;
+  topgen.open (dot_topo_file.c_str ());
+  typedef map<std::string, pt::ptree> NODE_CONFIG_MAP;
+  typedef std::list<std::string> NODE_LIST;
+  typedef map<std::string, NODE_LIST> NODE_ADJ_MAP;
+  NODE_CONFIG_MAP nodeMap;
+  NODE_ADJ_MAP nodeAdjMap;
+  const char *homeDir = NULL;
+  std::string nodeLabel;
+  std::string nlsr_topo;
+  std::string srcNodeId, dir, dstNodeId;
+  //ofstream graphvizfile;
+
+  if ((homeDir = getenv("HOME")) == NULL) {
+      homeDir = getpwuid(getuid())->pw_dir;
+  }
+  NS_LOG_INFO ("Home dir is: " << homeDir);
+
+  if ( !topgen.is_open () || !topgen.good () ) {
+    NS_FATAL_ERROR ("Cannot open file " << dot_topo_file << " for reading");
+    return false;
+  }
+
+  while (!topgen.eof ()) {
+    string line;
+    getline (topgen, line);
+    NS_LOG_INFO ("Dot config line: " << line);
+
+    if (line.compare(0, 6, "strict") == 0)  {
+      std::size_t f1 = line.find_first_of("(", 0);
+      std::size_t f2 = line.find_first_of(",", f1+1);
+      nodeLabel = line.substr(f1+1, f2-f1-1);
+      NS_LOG_INFO ("Node Label: " << nodeLabel);
+      break;
+    }
+  }
+
+  nlsr_topo = nodeLabel + "-nlsr-topology.dot";
+  //graphvizfile.open (nlsr_topo.c_str());
+  //if ( !graphvizfile.is_open () || !graphvizfile.good () ) {
+  //  NS_FATAL_ERROR ("Cannot open file " << nlsr_topo << " for writing");
+  //  return false;
+  //}
+
+  if (topgen.eof ()) {
+    NS_FATAL_ERROR ("DOT topology config file " << dot_topo_file << " does not have \"Nodes\" section");
+    return false;
+  }
+
+  // Write Graphviz file header
+  //graphvizfile << "graph G {" << endl;
+  //graphvizfile << "label=\"" << nodeLabel << " Node Network Topology\";" << endl;
+  //graphvizfile << "rankdir=LR;" << endl;
+
+  // Read network 'Node' configuration.
+  while (!topgen.eof ()) {
+    string line;
+    getline (topgen,line);
+
+    std::size_t found = line.find('}');
+    if (found != std::string::npos)
+      break;
+
+    istringstream linebuffer(line);
+    linebuffer >> srcNodeId >> dir >> dstNodeId;
+    dstNodeId.erase(dstNodeId.length() - 1, 1);
+    //NS_LOG_INFO ("Src Node Id: " << srcNodeId);
+    //NS_LOG_INFO ("Dst Node Id: " << dstNodeId.erase(dstNodeId.length() - 1, 1));
+
+    // Populate node array and their adjacency. 
+    NODE_ADJ_MAP::iterator it;
+    it = nodeAdjMap.find(srcNodeId);
+    if (it != nodeAdjMap.end()) {
+      nodeAdjMap[srcNodeId].push_back(dstNodeId);
+    } else {
+      NODE_LIST ndList;
+      ndList.push_back(dstNodeId);
+      nodeAdjMap[srcNodeId] = ndList;
+    }
+
+    it = nodeAdjMap.find(dstNodeId);
+    if (it != nodeAdjMap.end()) {
+      nodeAdjMap[dstNodeId].push_back(srcNodeId);
+    } else {
+      NODE_LIST ndList;
+      ndList.push_back(srcNodeId);
+      nodeAdjMap[dstNodeId] = ndList;
+    }
+
+    // Add Nodesto Graphviz (DOT) file.
+    //graphvizfile << nodeId << "[width=0.1, label=\"" << nodeId <<  "\", style=filled, fillcolor=\"green\"]" << endl;
+
+    linebuffer.str("");
+  }
+
+  NS_LOG_INFO ("Map size: " << nodeAdjMap.size());
+  NODE_ADJ_MAP::iterator mi = nodeAdjMap.begin();
+  while (mi != nodeAdjMap.end()) {
+
+    NS_LOG_INFO ("Source Node Id: " << mi->first);
+    std::string id = mi->first;
+    srcNodeId = "N" + id;
+    std::string nodeId = srcNodeId;
+    std::string city = "NA";
+    std::string latitude = "3";
+    std::string longitude = "1";
+    std::string network = "/n";
+    std::string site = "/e";
+    std::string router = "/%C1r" + id;
+    std::string lsaRefreshTime = "1800";
+    std::string routerDeadInterval = "3600";
+    std::string lsaInterestLifetime = "4";
+    std::string logLevel = "INFO";
+    std::string logDir = std::string(homeDir) + "/log/" + nodeId + "/nlsr";
+    std::string seqDir = std::string(homeDir) + "/log/" + nodeId + "/nlsr";
+    std::string helloRetries = "2";
+    std::string helloTimeout = "5";
+    std::string helloInterval = "60";
+    std::string adjLsaBuildInterval = "5";
+    std::string firstHelloInterval = "10";
+    std::string state = "off";
+    std::string radius = "123.456";
+    std::string angle = "1.45";
+    std::string maxFacesPerPrefix = "3";
+    std::string routingCalcInterval = "15";
+    std::string prefix1 = "/n/e/" + nodeId + "/p1";
+    std::string prefix2 = "/n/e/" + nodeId + "/p2";
+
+    //NS_LOG_DEBUG ("Router: " << nodeId << " " << city << " " << latitude << " " << longitude << " " << network << " " << site << " " << router << " " << lsaRefreshTime << " " << routerDeadInterval << " " << lsaInterestLifetime << " " << logLevel << " " << logDir << " " << seqDir << " " << helloRetries << " " << helloTimeout << " " << helloInterval << " " << adjLsaBuildInterval << " " << firstHelloInterval << " " << state << " " << radius << " " << angle << " " << maxFacesPerPrefix << " " << routingCalcInterval << " " << prefix1 << " " << prefix2);
+
+    // Add General config
+    pt::ptree nt;
+    nt.put("general.node-id", nodeId);
+    nt.put("general.city", city);
+    nt.put("general.latitude", latitude);
+    nt.put("general.longitude", longitude);
+    nt.put("general.network", network);
+    nt.put("general.site", site);
+    nt.put("general.router", router);
+    nt.put("general.lsa-refresh-time", lsaRefreshTime);
+    nt.put("general.router-dead-interval", routerDeadInterval);
+    nt.put("general.lsa-interest-lifetime", lsaInterestLifetime);
+    nt.put("general.log-level", logLevel);
+    nt.put("general.log-dir", logDir);
+    nt.put("general.seq-dir", seqDir);
+ 
+    // Add Neighbors config
+    nt.put("neighbors.hello-retries", helloRetries);
+    nt.put("neighbors.hello-timeout", helloTimeout);
+    nt.put("neighbors.hello-interval", helloInterval);
+    nt.put("neighbors.adj-lsa-build-interval", adjLsaBuildInterval);
+    nt.put("neighbors.first-hello-interval", firstHelloInterval);
+  
+    // Add Hyperbolic config
+    nt.put("hyperbolic.state", state);
+    nt.put("hyperbolic.radius", radius);
+    nt.put("hyperbolic.angle", angle);
+  
+    // Add Fib config
+    nt.put("fib.max-faces-per-prefix", maxFacesPerPrefix);
+    nt.put("fib.routing-calc-interval", routingCalcInterval);
+
+    // Add Advertising config
+    nt.add("advertising.prefix", prefix1);
+    nt.add("advertising.prefix", prefix2);
+  
+    // Add Security config
+    nt.put("security.validator.trust-anchor.type", "any");
+    nt.put("security.prefix-update-validator.trust-anchor.type", "any");
+
+    // Save the tree object for later on.
+    nodeMap[nodeId] = nt;
+
+    NODE_LIST list = mi->second;
+    NODE_LIST::iterator li = list.begin();
+    while (li != list.end()) {
+
+      NS_LOG_INFO ("Adj Node Id: " << *li);
+      std::string srcId = id;
+      std::string dstId = *li;
+      dstNodeId = dstId;
+      dstNodeId = "N" + dstNodeId;
+      std::string name = "/n/e/%C1r" + dstId;
+      std::string faceUri = "tcp4://10.0.0." + dstId + ":6363";
+      std::string linkCost = "25";
+      //std::string length = length.substr(0, length.find('.', 0) + 3);
+      std::string bandwidth = "100"; //bandwidth.substr(0, bandwidth.find('.', 0) + 3);
+      std::string metric = "1";
+      std::string delay = "0"; //delay.substr(0, delay.find('.', 0) + 3);
+      std::string queue = "1000";
+
+      //NS_LOG_DEBUG ("Adjacent router: " << srcNodeId << " " << dstNodeId << " " << name << " " << faceUri << " " << linkCost << " " << bandwidth << " " << metric << " " << delay << " " << queue);
+  
+      // Establish full-duplex link between adjacent nodes.
+      NODE_CONFIG_MAP::iterator it = nodeMap.find(srcNodeId);
+      if (it != nodeMap.end()) {
+        auto& nbr = (it->second).get_child("neighbors");
+
+        // Add neighbor
+        pt::ptree nb;
+        nb.add("node-id", dstNodeId);
+        nb.add("name", name);
+        nb.add("face-uri", faceUri);
+        nb.add("link-cost", linkCost);
+        nb.add("bandwidth", bandwidth);
+        nb.add("metric", metric);
+        nb.add("delay", delay);
+        nb.add("queue", queue);
+        nbr.add_child("neighbor", nb);
+      }
+
+/*
+      it = nodeMap.find(dstNodeId);
+      if (it != nodeMap.end()) {
+
+        // Add neighbor
+        auto& nbr = (it->second).get_child("neighbors");
+        name = "/n/e/%C1r" + srcId;
+        faceUri = "tcp4://10.0.0." + srcId + ":6363";
+
+        pt::ptree nb;
+        nb.add("node-id", srcNodeId);
+        nb.add("name", name);
+        nb.add("face-uri", faceUri);
+        nb.add("link-cost", linkCost);
+        nb.add("bandwidth", bandwidth);
+        nb.add("metric", metric);
+        nb.add("delay", delay);
+        nb.add("queue", queue);
+        nbr.add_child("neighbor", nb);
+      }
+*/
+
+      // Add Edges to Graphviz (DOT) file.
+      //graphvizfile << srcNodeId << "--" << dstNodeId << "[label=\"" << linkCost << "\"]" << endl;
+
+      li++;
+    }
+    NS_LOG_DEBUG ("\n");
+    srcNodeId.clear();
+    mi++;
+  }
+
+  // Generate the NLSR configuration file
+  for (NODE_CONFIG_MAP::iterator it = nodeMap.begin(); it != nodeMap.end(); ++it) {
+    std::string filename = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_node_" + it->first + ".conf";
+    pt::write_info(filename, it->second); 
+  }
+
+  // Generate topology config file.
+  std::string sim_config = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_sim.conf";
+  pt::ptree simTree;
+  for (NODE_CONFIG_MAP::iterator itr = nodeMap.begin(); itr != nodeMap.end(); ++itr) {
+    std::string filename = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_node_" + itr->first + ".conf";
+    pt::ptree nodeTree;
+    nodeTree.add("node-id", itr->first);
+    nodeTree.add("nlsr-config", filename);
+    simTree.add_child("ndn-node", nodeTree);
+  }
+
+  pt::write_info(sim_config, simTree); 
+
+  //graphvizfile << "}" << endl; 
+  //graphvizfile.close();
+
+  return true;
+}
+
+bool
 ProcessBriteTopology(std::string confFile)
 {
   std::string brite_topo_file = confFile;
@@ -569,7 +841,8 @@ ProcessBulkConfig(std::string confFile)
 int
 main (int argc, char *argv[])
 {
-  std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_router_topo.brite";
+  //std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_router_topo.brite";
+  std::string dot_topo = "/home/anjangam/sandbox/creepycode/networkx/scalefree_topo.dot";
 
 #if 0
   std::cout << "No of arguments are: " << argc << endl;
@@ -597,10 +870,8 @@ main (int argc, char *argv[])
   }
 #endif
 
-  ProcessBriteTopology(brite_topo);
-  //std::string bulk_config = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_bulk.conf";
-  //ProcessRouterList(bulk_config);
-  //ProcessBulkConfig(bulk_config);
+  //ProcessBriteTopology(brite_topo);
+  ProcessDotTopology(dot_topo);
   return 0;
 }
 
