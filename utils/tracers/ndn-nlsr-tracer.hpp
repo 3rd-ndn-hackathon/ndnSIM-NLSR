@@ -113,6 +113,11 @@ private:
   std::ofstream of_fib;
 
   static NlsrTracer* inst;
+  static int m_HelloCount;
+  static int m_NameLsaCount;
+  static int m_LinkLsaCount;
+  static int m_NsyncCount;
+  static int m_FibCount;
 };
 
 } // namespace ndn

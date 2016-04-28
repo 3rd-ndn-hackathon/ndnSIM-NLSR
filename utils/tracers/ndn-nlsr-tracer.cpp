@@ -35,6 +35,11 @@ namespace ns3 {
 namespace ndn {
 
 NlsrTracer* NlsrTracer::inst = 0;
+int NlsrTracer::m_HelloCount = 0;
+int NlsrTracer::m_NameLsaCount = 0;
+int NlsrTracer::m_LinkLsaCount = 0;
+int NlsrTracer::m_NsyncCount = 0;
+int NlsrTracer::m_FibCount = 0;
 
 void
 NlsrTracer::WriteHeaders() {
@@ -51,6 +56,10 @@ NlsrTracer::HelloTrace(std::string arg1, std::string arg2, std::string arg3, std
   std::string nodeName = Names::FindName(node);
 
   of_hello << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
+  if (++m_HelloCount == 100) {
+    of_hello.flush();
+    m_HelloCount = 0;
+  }
 }
 
 void 
@@ -59,6 +68,10 @@ NlsrTracer::NameLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
   std::string nodeName = Names::FindName(node);
 
   of_nlsa << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
+  if (++m_NameLsaCount == 100) {
+    of_nlsa.flush();
+    m_NameLsaCount = 0;
+  }
 }
 
 void 
@@ -67,6 +80,10 @@ NlsrTracer::LinkLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
   std::string nodeName = Names::FindName(node);
 
   of_llsa << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
+  if (++m_LinkLsaCount == 100) {
+    of_llsa.flush();
+    m_LinkLsaCount = 0;
+  }
 }
 
 void 
@@ -75,6 +92,10 @@ NlsrTracer::NsyncTrace(std::string arg1, std::string arg2, std::string arg3, std
   std::string nodeName = Names::FindName(node);
 
   of_nsync << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
+  if (++m_NsyncCount == 100) {
+    of_nsync.flush();
+    m_NsyncCount = 0;
+  }
 }
 
 void 
@@ -83,6 +104,10 @@ NlsrTracer::FibTrace(std::string arg1, std::string arg2, std::string arg3, std::
   std::string nodeName = Names::FindName(node);
 
   of_fib << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
+  if (++m_FibCount == 100) {
+    of_fib.flush();
+    m_FibCount = 0;
+  }
 }
 
 } // namespace ndn

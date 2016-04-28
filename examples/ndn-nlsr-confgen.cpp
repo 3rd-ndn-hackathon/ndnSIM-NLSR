@@ -841,14 +841,15 @@ ProcessBulkConfig(std::string confFile)
 int
 main (int argc, char *argv[])
 {
+
   const char *homeDir = NULL;
 
   if ((homeDir = getenv("HOME")) == NULL) {
       homeDir = getpwuid(getuid())->pw_dir;
   }
 
-  //std::string brite_topo = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_router_topo.brite";
-  std::string dot_topo = std::string(homeDir) + "/sandbox/creepyCode/networkx/scalefree_topo.dot";
+  //std::string topo_file = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_router_topo.brite";
+  std::string topo_file = std::string(homeDir) + "/sandbox/creepyCode/networkx/scalefree_topo.dot";
 
 #if 0
   std::cout << "No of arguments are: " << argc << endl;
@@ -876,8 +877,8 @@ main (int argc, char *argv[])
   }
 #endif
 
-  //ProcessBriteTopology(brite_topo);
-  ProcessDotTopology(dot_topo);
+  //ProcessBriteTopology(topo_file);
+  ProcessDotTopology(topo_file);
   return 0;
 }
 
