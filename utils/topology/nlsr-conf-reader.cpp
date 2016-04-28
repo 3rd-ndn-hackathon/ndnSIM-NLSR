@@ -419,13 +419,11 @@ NlsrConfReader::PrintConfig()
     for (nodeIt = m_node_map.begin(); nodeIt != m_node_map.end(); ++nodeIt) {
       std::string nodeId = nodeIt->first;
       NetworkNode& node = nodeIt->second;
-      std::cout << "Source Node Id: " << std::endl; node.PrintNode();
 
       ADJACENCY_LIST adjLinks = m_adj_map[nodeId];
       ADJACENCY_LIST::iterator nodeIt;
       for (nodeIt = adjLinks.begin(); nodeIt != adjLinks.end(); nodeIt++) {
 	NetworkLink link = (*nodeIt);
-        std::cout << "Destination Node Id: " << std::endl; link.PrintLink();
       }
     }
   }
