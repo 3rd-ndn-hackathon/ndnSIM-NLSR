@@ -21,6 +21,7 @@
 
 #include <fstream>
 
+#include "ns3/log.h"
 #include "ndn-nlsr-tracer.hpp"
 
 #include <ns3/ptr.h>
@@ -29,6 +30,8 @@
 #include <ns3/names.h>
 
 #include "ns3/simulator.h"
+
+NS_LOG_COMPONENT_DEFINE("NlsrTracer");
 
 namespace ns3 {
 
@@ -47,13 +50,14 @@ int NlsrTracer::m_LinkLsaFileCount = 0;
 int NlsrTracer::m_NsyncFileCount = 0;
 int NlsrTracer::m_FibFileCount = 0;
 
-int NlsrTracer::m_LogBlockSize = 1000;
-int NlsrTracer::m_NsyncLogBlockSize = 24000; // 8K messaages typically create 1Mbyte of file.
-
 NlsrTracer& NlsrTracer::Instance() {
   if (!inst) 
     inst = new NlsrTracer();
   return *inst;
+}
+
+NlsrTracer::NlsrTracer() {
+  m_LogBlockSize = 4000;
 }
 
 NlsrTracer::~NlsrTracer() {
@@ -65,26 +69,43 @@ NlsrTracer::~NlsrTracer() {
   of_fib.close();
 }
 
+// LOG_FILE_SIZE can be configured from env variable.
+void
+NlsrTracer::SetLogRollOverSize() {
+  char* str = getenv("LOG_ROLL_OVER");
+  if (str != NULL) {
+    try {
+      m_LogBlockSize = std::stoi(str);
+      NS_LOG_INFO ("Log roll-over size set to: " << m_LogBlockSize);
+    } catch (const std::invalid_argument& ia) {
+      NS_LOG_ERROR ("Invalid LOG_ROLL_OVER size configured, using default: " << m_LogBlockSize);
+    }
+  } else {
+    NS_LOG_INFO ("No log roll over specified, using default: 4000");
+  }
+}
+
 void 
 NlsrTracer::InitializeTracer(std::string prefix) {
   m_prefix = prefix;
   boost::filesystem::path full_path(boost::filesystem::current_path());
-  m_helloTracer = full_path.string() + "/" + m_prefix + "-nlsr-hello-trace.txt";
+  m_helloTracer = full_path.string() + "/" + m_prefix + "-nlsr-hello-trace-" + std::to_string(m_HelloFileCount++) + ".txt";
   of_hello.open(m_helloTracer.c_str());
 
-  m_nameLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-name-lsa-trace.txt";
+  m_nameLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-name-lsa-trace-" + std::to_string(m_NameLsaFileCount++) + ".txt";
   of_nlsa.open(m_nameLsaTracer.c_str()); 
 
-  m_linkLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-link-lsa-trace.txt";
+  m_linkLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-link-lsa-trace-" + std::to_string(m_LinkLsaFileCount++) + ".txt";
   of_llsa.open(m_linkLsaTracer.c_str()); 
 
   m_nsyncTracer = full_path.string() + "/" + m_prefix + "-nlsr-nsync-trace-" + std::to_string(m_NsyncFileCount++) + ".txt";
   of_nsync.open(m_nsyncTracer.c_str()); 
 
-  m_fibTracer = full_path.string() + "/" + m_prefix + "-nlsr-fib-trace.txt";
+  m_fibTracer = full_path.string() + "/" + m_prefix + "-nlsr-fib-trace-" + std::to_string(m_FibFileCount++) + ".txt";
   of_fib.open(m_fibTracer.c_str()); 
 
   WriteHeaders();
+  SetLogRollOverSize();
 }
 
 void
@@ -103,8 +124,15 @@ NlsrTracer::HelloTrace(std::string arg1, std::string arg2, std::string arg3, std
 
   of_hello << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
   if (++m_HelloCount == m_LogBlockSize) {
+    // Close and create a new log file
     of_hello.flush();
     m_HelloCount = 0;
+    of_hello.close();
+
+    boost::filesystem::path full_path(boost::filesystem::current_path());
+    m_helloTracer = full_path.string() + "/" + m_prefix + "-nlsr-hello-trace-" + std::to_string(m_HelloFileCount++) + ".txt";
+    of_hello.open(m_helloTracer.c_str()); 
+    of_hello << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
   }
 }
 
@@ -115,8 +143,15 @@ NlsrTracer::NameLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
 
   of_nlsa << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
   if (++m_NameLsaCount == m_LogBlockSize) {
+    // Close and create a new log file
     of_nlsa.flush();
     m_NameLsaCount = 0;
+    of_nlsa.close();
+
+    boost::filesystem::path full_path(boost::filesystem::current_path());
+    m_nameLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-name-lsa-trace-" + std::to_string(m_NameLsaFileCount++) + ".txt";
+    of_nlsa.open(m_nameLsaTracer.c_str()); 
+    of_nlsa << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
   }
 }
 
@@ -129,6 +164,12 @@ NlsrTracer::LinkLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
   if (++m_LinkLsaCount == m_LogBlockSize) {
     of_llsa.flush();
     m_LinkLsaCount = 0;
+    of_llsa.close();
+
+    boost::filesystem::path full_path(boost::filesystem::current_path());
+    m_linkLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-link-lsa-trace-" + std::to_string(m_LinkLsaFileCount++) + ".txt";
+    of_llsa.open(m_linkLsaTracer.c_str()); 
+    of_llsa << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
   }
 }
 
@@ -138,7 +179,7 @@ NlsrTracer::NsyncTrace(std::string arg1, std::string arg2, std::string arg3, std
   std::string nodeName = Names::FindName(node);
 
   of_nsync << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
-  if (++m_NsyncCount == m_NsyncLogBlockSize) {
+  if (++m_NsyncCount == m_LogBlockSize) {
     // Close and create a new log file
     of_nsync.flush();
     m_NsyncCount = 0;
@@ -158,8 +199,15 @@ NlsrTracer::FibTrace(std::string arg1, std::string arg2, std::string arg3, std::
 
   of_fib << Simulator::Now().ToDouble(Time::S) << "\t" << nodeName << "\t" << arg1 << "\t" << arg2 << "\t" << arg3 << "\t" << arg4 << "\t" << arg5 << "\t" << arg6 << endl; 
   if (++m_FibCount == m_LogBlockSize) {
+    // Close and create a new log file
     of_fib.flush();
     m_FibCount = 0;
+    of_fib.close();
+
+    boost::filesystem::path full_path(boost::filesystem::current_path());
+    m_fibTracer = full_path.string() + "/" + m_prefix + "-nlsr-fib-trace-" + std::to_string(m_FibFileCount++) + ".txt";
+    of_fib.open(m_fibTracer.c_str()); 
+    of_fib << "Time" << "\tNode" << "\tName" << "\tType" << "\tAttempt" << "\t-" << "\t-" << "\t-" << endl;
   }
 }
 

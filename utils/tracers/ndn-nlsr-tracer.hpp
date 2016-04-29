@@ -59,13 +59,13 @@ public:
   FibTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
 private:
-  NlsrTracer() {
-  }
 
-  void WriteHeaders();
-
+  NlsrTracer();
   NlsrTracer(const NlsrTracer&);
   NlsrTracer& operator=(const NlsrTracer&);
+
+  void WriteHeaders();
+  void SetLogRollOverSize();
 
   std::string m_prefix;
   std::string m_currPath;
@@ -94,8 +94,7 @@ private:
   static int m_NsyncFileCount;
   static int m_FibFileCount;
 
-  static int m_LogBlockSize;
-  static int m_NsyncLogBlockSize;
+  int m_LogBlockSize;
 };
 
 } // namespace ndn
