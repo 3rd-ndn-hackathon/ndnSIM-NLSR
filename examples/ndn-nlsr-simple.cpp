@@ -86,9 +86,9 @@ main (int argc, char *argv[])
 
   Simulator::Stop (Seconds (150.0));
 
-  ndn::L3RateTracer::InstallAll ((prefix + "-nlsr-l3-rate-trace.txt"), Seconds (0.5));
-  L2RateTracer::InstallAll ((prefix + "-nlsr-l2-rate-trace.txt"));
-  ndn::AppDelayTracer::InstallAll((prefix + "-nlsr-app-delays-trace.txt"));
+  //ndn::L3RateTracer::InstallAll ((prefix + "-nlsr-l3-rate-trace.txt"), Seconds (0.5));
+  //L2RateTracer::InstallAll ((prefix + "-nlsr-l2-rate-trace.txt"));
+  //ndn::AppDelayTracer::InstallAll((prefix + "-nlsr-app-delays-trace.txt"));
 
   Simulator::Run ();
   Simulator::Destroy ();
