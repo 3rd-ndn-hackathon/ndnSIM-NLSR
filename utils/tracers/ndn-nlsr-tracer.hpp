@@ -37,43 +37,11 @@ namespace ndn {
 class NlsrTracer {
 
 public:
-  static
-  NlsrTracer& Instance() {
-    if (!inst) 
-      inst = new NlsrTracer();
-    return *inst;
-  }
+  static NlsrTracer& Instance();
 
-  virtual
-  ~NlsrTracer() {
-    // Close of streams
-    of_hello.close();
-    of_nlsa.close();
-    of_llsa.close();
-    of_nsync.close();
-    of_fib.close();
-  }
+  virtual ~NlsrTracer();
 
-  void 
-  InitializeTracer(std::string prefix) {
-    boost::filesystem::path full_path(boost::filesystem::current_path());
-    m_helloTracer += full_path.string() + "/" + prefix + "-nlsr-hello-trace.txt";
-    of_hello.open(m_helloTracer.c_str());
-
-    m_nameLsaTracer += full_path.string() + "/" + prefix + "-nlsr-name-lsa-trace.txt";
-    of_nlsa.open(m_nameLsaTracer.c_str()); 
-
-    m_linkLsaTracer += full_path.string() + "/" + prefix + "-nlsr-link-lsa-trace.txt";
-    of_llsa.open(m_linkLsaTracer.c_str()); 
-
-    m_nsyncTracer += full_path.string() + "/" + prefix + "-nlsr-nsync-trace.txt";
-    of_nsync.open(m_nsyncTracer.c_str()); 
-
-    m_fibTracer += full_path.string() + "/" + prefix + "-nlsr-fib-trace.txt";
-    of_fib.open(m_fibTracer.c_str()); 
-
-    WriteHeaders();
-  }
+  void InitializeTracer(std::string prefix);
 
   void 
   HelloTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
@@ -99,6 +67,7 @@ private:
   NlsrTracer(const NlsrTracer&);
   NlsrTracer& operator=(const NlsrTracer&);
 
+  std::string m_prefix;
   std::string m_currPath;
   std::string m_helloTracer;
   std::string m_nameLsaTracer;
@@ -118,6 +87,15 @@ private:
   static int m_LinkLsaCount;
   static int m_NsyncCount;
   static int m_FibCount;
+
+  static int m_HelloFileCount;
+  static int m_NameLsaFileCount;
+  static int m_LinkLsaFileCount;
+  static int m_NsyncFileCount;
+  static int m_FibFileCount;
+
+  static int m_LogBlockSize;
+  static int m_NsyncLogBlockSize;
 };
 
 } // namespace ndn
