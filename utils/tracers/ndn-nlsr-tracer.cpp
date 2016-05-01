@@ -33,6 +33,12 @@
 
 NS_LOG_COMPONENT_DEFINE("NlsrTracer");
 
+std::string helloTraceFile = "-node-nlsr-hello-trace-";
+std::string syncTraceFile = "-node-nlsr-sync-trace-";
+std::string nlsaTraceFile = "-node-nlsr-nlsa-trace-";
+std::string llsaTraceFile = "-node-nlsr-llsa-trace-";
+std::string fibTraceFile = "-node-nlsr-fib-trace-";
+
 namespace ns3 {
 
 namespace ndn {
@@ -89,19 +95,19 @@ void
 NlsrTracer::InitializeTracer(std::string prefix) {
   m_prefix = prefix;
   boost::filesystem::path full_path(boost::filesystem::current_path());
-  m_helloTracer = full_path.string() + "/" + m_prefix + "-nlsr-hello-trace-" + std::to_string(m_HelloFileCount++) + ".txt";
+  m_helloTracer = full_path.string() + "/" + m_prefix + helloTraceFile + std::to_string(m_HelloFileCount++) + ".txt";
   of_hello.open(m_helloTracer.c_str());
 
-  m_nameLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-name-lsa-trace-" + std::to_string(m_NameLsaFileCount++) + ".txt";
+  m_nameLsaTracer = full_path.string() + "/" + m_prefix + nlsaTraceFile + std::to_string(m_NameLsaFileCount++) + ".txt";
   of_nlsa.open(m_nameLsaTracer.c_str()); 
 
-  m_linkLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-link-lsa-trace-" + std::to_string(m_LinkLsaFileCount++) + ".txt";
+  m_linkLsaTracer = full_path.string() + "/" + m_prefix + llsaTraceFile + std::to_string(m_LinkLsaFileCount++) + ".txt";
   of_llsa.open(m_linkLsaTracer.c_str()); 
 
-  m_nsyncTracer = full_path.string() + "/" + m_prefix + "-nlsr-nsync-trace-" + std::to_string(m_NsyncFileCount++) + ".txt";
+  m_nsyncTracer = full_path.string() + "/" + m_prefix + syncTraceFile + std::to_string(m_NsyncFileCount++) + ".txt";
   of_nsync.open(m_nsyncTracer.c_str()); 
 
-  m_fibTracer = full_path.string() + "/" + m_prefix + "-nlsr-fib-trace-" + std::to_string(m_FibFileCount++) + ".txt";
+  m_fibTracer = full_path.string() + "/" + m_prefix + fibTraceFile + std::to_string(m_FibFileCount++) + ".txt";
   of_fib.open(m_fibTracer.c_str()); 
 
   WriteHeaders();
@@ -130,7 +136,7 @@ NlsrTracer::HelloTrace(std::string arg1, std::string arg2, std::string arg3, std
     of_hello.close();
 
     boost::filesystem::path full_path(boost::filesystem::current_path());
-    m_helloTracer = full_path.string() + "/" + m_prefix + "-nlsr-hello-trace-" + std::to_string(m_HelloFileCount++) + ".txt";
+    m_helloTracer = full_path.string() + "/" + m_prefix + helloTraceFile + std::to_string(m_HelloFileCount++) + ".txt";
     of_hello.open(m_helloTracer.c_str()); 
     of_hello << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
   }
@@ -149,7 +155,7 @@ NlsrTracer::NameLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
     of_nlsa.close();
 
     boost::filesystem::path full_path(boost::filesystem::current_path());
-    m_nameLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-name-lsa-trace-" + std::to_string(m_NameLsaFileCount++) + ".txt";
+    m_nameLsaTracer = full_path.string() + "/" + m_prefix + nlsaTraceFile + std::to_string(m_NameLsaFileCount++) + ".txt";
     of_nlsa.open(m_nameLsaTracer.c_str()); 
     of_nlsa << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
   }
@@ -167,7 +173,7 @@ NlsrTracer::LinkLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
     of_llsa.close();
 
     boost::filesystem::path full_path(boost::filesystem::current_path());
-    m_linkLsaTracer = full_path.string() + "/" + m_prefix + "-nlsr-link-lsa-trace-" + std::to_string(m_LinkLsaFileCount++) + ".txt";
+    m_linkLsaTracer = full_path.string() + "/" + m_prefix + llsaTraceFile + std::to_string(m_LinkLsaFileCount++) + ".txt";
     of_llsa.open(m_linkLsaTracer.c_str()); 
     of_llsa << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
   }
@@ -186,7 +192,7 @@ NlsrTracer::NsyncTrace(std::string arg1, std::string arg2, std::string arg3, std
     of_nsync.close();
 
     boost::filesystem::path full_path(boost::filesystem::current_path());
-    m_nsyncTracer = full_path.string() + "/" + m_prefix + "-nlsr-nsync-trace-" + std::to_string(m_NsyncFileCount++) + ".txt";
+    m_nsyncTracer = full_path.string() + "/" + m_prefix + syncTraceFile + std::to_string(m_NsyncFileCount++) + ".txt";
     of_nsync.open(m_nsyncTracer.c_str()); 
     of_nsync << "Time" << "\tNode" << "\tName" << "\tType" << "\tPackets" << "\tKBytes" << "\t-" << "\t-" << endl;
   }
@@ -205,7 +211,7 @@ NlsrTracer::FibTrace(std::string arg1, std::string arg2, std::string arg3, std::
     of_fib.close();
 
     boost::filesystem::path full_path(boost::filesystem::current_path());
-    m_fibTracer = full_path.string() + "/" + m_prefix + "-nlsr-fib-trace-" + std::to_string(m_FibFileCount++) + ".txt";
+    m_fibTracer = full_path.string() + "/" + m_prefix + fibTraceFile + std::to_string(m_FibFileCount++) + ".txt";
     of_fib.open(m_fibTracer.c_str()); 
     of_fib << "Time" << "\tNode" << "\tName" << "\tType" << "\tAttempt" << "\t-" << "\t-" << "\t-" << endl;
   }
