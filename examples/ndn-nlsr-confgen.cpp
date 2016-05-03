@@ -144,6 +144,7 @@ bool ProcessCommonConfig() {
       }
     } // end of for loop
 
+#if 0
     {
       cout << "lsa-refresh-time: " << nlsrConf.lsa_refresh_time << std::endl;
       cout << "router-dead-interval: " << nlsrConf.router_dead_interval << std::endl;
@@ -161,6 +162,7 @@ bool ProcessCommonConfig() {
       cout << "delay: " << nlsrConf.delay << std::endl;
       cout << "queue: " << nlsrConf.queue << std::endl;
     }
+#endif
   } else {
     cout << "Could not open common config file: " << common_conf << std::endl;
     return false;
