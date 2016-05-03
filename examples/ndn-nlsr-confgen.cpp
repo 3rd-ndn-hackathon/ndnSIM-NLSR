@@ -55,10 +55,120 @@ namespace ns3 {
 
 using namespace std;
 namespace pt = boost::property_tree;
+typedef boost::property_tree::ptree ConfigSection;
 
 NS_LOG_COMPONENT_DEFINE ("NdnNlsrConfigGen");
 
 // #################### Bulk Config Reader ####################
+
+struct nlsr_common_config {
+  std::string lsa_refresh_time;
+  std::string router_dead_interval;
+  std::string lsa_interest_lifetime;
+  std::string hello_retries;
+  std::string hello_timeout;
+  std::string hello_interval;
+  std::string adj_lsa_build_interval;
+  std::string first_hello_interval;
+  std::string link_cost;
+  std::string bandwidth;
+  std::string metric;
+  std::string delay;
+  std::string queue;
+  std::string max_faces_per_prefix;
+  std::string routing_calc_interval;
+} nlsrConf;
+
+bool ProcessCommonConfig() {
+
+  const char *homeDir = NULL;
+  if ((homeDir = getenv("HOME")) == NULL) {
+      homeDir = getpwuid(getuid())->pw_dir;
+  }
+
+  // Get the static config for all nodes.
+  std::string common_conf = std::string(homeDir) + "/sandbox/ndnSIM/ns-3/src/ndnSIM/examples/ndn-nlsr-conf/static_nlsr.conf";
+  bool ret = true;
+
+  ifstream inputFile;
+  inputFile.open(common_conf.c_str());
+  if (inputFile.is_open()) {
+    ConfigSection pt;
+    try {
+      boost::property_tree::read_info(inputFile, pt);
+    } catch (const boost::property_tree::info_parser_error& error) {
+      stringstream msg;
+      std::cerr << "Failed to parse common config file " << std::endl;
+      std::cerr << common_conf << std::endl;
+      return -1;
+    }
+
+    for (ConfigSection::const_iterator tn = pt.begin();
+         tn != pt.end(); ++tn) {
+      std::string sectionName = tn->first;
+      const ConfigSection& section = tn->second;
+
+      if (sectionName == "node_config") {
+        try {
+          nlsrConf.lsa_refresh_time = section.get<string>("lsa-refresh-time");
+          nlsrConf.router_dead_interval = section.get<string>("router-dead-interval");
+          nlsrConf.lsa_interest_lifetime = section.get<string>("lsa-interest-lifetime");
+        } catch (const std::exception& ex) {
+          cerr << ex.what() << endl;
+          ret = false;
+        }
+      } else if (sectionName == "adjacency_config") {
+        try {
+          nlsrConf.hello_retries = section.get<string>("hello-retries");
+          nlsrConf.hello_timeout = section.get<string>("hello-timeout");
+          nlsrConf.hello_interval = section.get<string>("hello-interval");
+          nlsrConf.adj_lsa_build_interval = section.get<string>("adj-lsa-build-interval");
+          nlsrConf.first_hello_interval = section.get<string>("first-hello-interval");
+          nlsrConf.link_cost = section.get<string>("link-cost");
+          nlsrConf.bandwidth = section.get<string>("bandwidth");
+          nlsrConf.metric = section.get<string>("metric");
+          nlsrConf.delay = section.get<string>("delay");
+          nlsrConf.queue = section.get<string>("queue");
+        } catch (const std::exception& ex) {
+          cerr << ex.what() << endl;
+          ret = false;
+        }
+      } else if (sectionName == "fib_config") {
+        try {
+          nlsrConf.max_faces_per_prefix = section.get<string>("max-faces-per-prefix");
+          nlsrConf.routing_calc_interval = section.get<string>("routing-calc-interval");
+        } catch (const std::exception& ex) {
+          cerr << ex.what() << endl;
+          ret = false;
+        }
+      }
+    } // end of for loop
+
+    {
+      cout << "lsa-refresh-time: " << nlsrConf.lsa_refresh_time << std::endl;
+      cout << "router-dead-interval: " << nlsrConf.router_dead_interval << std::endl;
+      cout << "lsa-interest-lifetime: " << nlsrConf.lsa_interest_lifetime << std::endl;
+      cout << "hello-retries: " << nlsrConf.hello_retries << std::endl;
+      cout << "hello-timeout: " << nlsrConf.hello_timeout << std::endl;
+      cout << "hello-interval: " << nlsrConf.hello_interval << std::endl;
+      cout << "adj-lsa-build-interval: " << nlsrConf.adj_lsa_build_interval << std::endl;
+      cout << "first-hello-interval: " << nlsrConf.first_hello_interval << std::endl;
+      cout << "max-faces-per-prefix: " << nlsrConf.max_faces_per_prefix << std::endl;
+      cout << "routing-calc-interval: " << nlsrConf.routing_calc_interval << std::endl;
+      cout << "link-cost: " << nlsrConf.link_cost << std::endl;
+      cout << "bandwidth: " << nlsrConf.bandwidth << std::endl;
+      cout << "metric: " << nlsrConf.metric << std::endl;
+      cout << "delay: " << nlsrConf.delay << std::endl;
+      cout << "queue: " << nlsrConf.queue << std::endl;
+    }
+  } else {
+    cout << "Could not open common config file: " << common_conf << std::endl;
+    return false;
+  }
+
+  return ret;
+}
+
 bool
 ProcessRouterList(const std::string &file)
 {
@@ -268,22 +378,22 @@ ProcessDotTopology(std::string confFile)
     std::string network = "/n";
     std::string site = "/e";
     std::string router = "/%C1r" + id;
-    std::string lsaRefreshTime = "1800";
-    std::string routerDeadInterval = "3600";
-    std::string lsaInterestLifetime = "4";
+    std::string lsaRefreshTime = nlsrConf.lsa_refresh_time;
+    std::string routerDeadInterval = nlsrConf.router_dead_interval;
+    std::string lsaInterestLifetime = nlsrConf.lsa_interest_lifetime;
     std::string logLevel = "INFO";
     std::string logDir = std::string(homeDir) + "/log/" + nodeId + "/nlsr";
     std::string seqDir = std::string(homeDir) + "/log/" + nodeId + "/nlsr";
-    std::string helloRetries = "2";
-    std::string helloTimeout = "5";
-    std::string helloInterval = "60";
-    std::string adjLsaBuildInterval = "5";
-    std::string firstHelloInterval = "10";
+    std::string helloRetries = nlsrConf.hello_retries;
+    std::string helloTimeout = nlsrConf.hello_timeout;
+    std::string helloInterval = nlsrConf.hello_interval;
+    std::string adjLsaBuildInterval = nlsrConf.adj_lsa_build_interval;
+    std::string firstHelloInterval = nlsrConf.first_hello_interval;
     std::string state = "off";
     std::string radius = "123.456";
     std::string angle = "1.45";
-    std::string maxFacesPerPrefix = "3";
-    std::string routingCalcInterval = "15";
+    std::string maxFacesPerPrefix = nlsrConf.max_faces_per_prefix;
+    std::string routingCalcInterval = nlsrConf.routing_calc_interval;
     std::string prefix1 = "/n/e/" + nodeId + "/p1";
     std::string prefix2 = "/n/e/" + nodeId + "/p2";
 
@@ -343,12 +453,11 @@ ProcessDotTopology(std::string confFile)
       dstNodeId = "N" + dstNodeId;
       std::string name = "/n/e/%C1r" + dstId;
       std::string faceUri = "tcp4://10.0.0." + dstId + ":6363";
-      std::string linkCost = "25";
-      //std::string length = length.substr(0, length.find('.', 0) + 3);
-      std::string bandwidth = "100"; //bandwidth.substr(0, bandwidth.find('.', 0) + 3);
-      std::string metric = "1";
-      std::string delay = "0"; //delay.substr(0, delay.find('.', 0) + 3);
-      std::string queue = "1000";
+      std::string linkCost = nlsrConf.link_cost;
+      std::string bandwidth = nlsrConf.bandwidth;
+      std::string metric = nlsrConf.metric;
+      std::string delay = nlsrConf.delay;
+      std::string queue = nlsrConf.queue;
 
       //NS_LOG_DEBUG ("Adjacent router: " << srcNodeId << " " << dstNodeId << " " << name << " " << faceUri << " " << linkCost << " " << bandwidth << " " << metric << " " << delay << " " << queue);
   
@@ -876,6 +985,9 @@ main (int argc, char *argv[])
     return 0;
   }
 #endif
+
+  if(!ProcessCommonConfig())
+    return -1;
 
   //ProcessBriteTopology(topo_file);
   ProcessDotTopology(topo_file);
