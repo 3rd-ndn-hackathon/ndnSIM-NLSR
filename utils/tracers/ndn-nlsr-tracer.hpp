@@ -94,6 +94,7 @@ private:
   static int m_NsyncFileCount;
   static int m_FibFileCount;
 
+  static bool m_EnableTracer;
   int m_LogBlockSize;
 };
 

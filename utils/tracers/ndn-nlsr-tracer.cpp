@@ -56,6 +56,8 @@ int NlsrTracer::m_LinkLsaFileCount = 0;
 int NlsrTracer::m_NsyncFileCount = 0;
 int NlsrTracer::m_FibFileCount = 0;
 
+bool NlsrTracer::m_EnableTracer = true;
+
 NlsrTracer& NlsrTracer::Instance() {
   if (!inst) 
     inst = new NlsrTracer();
@@ -64,6 +66,20 @@ NlsrTracer& NlsrTracer::Instance() {
 
 NlsrTracer::NlsrTracer() {
   m_LogBlockSize = 4000;
+
+  char* str = getenv("ENABLE_TRACER");
+  if (str != NULL) {
+    if (strcmp(str, "TRUE") == 0) {
+      m_EnableTracer = true;
+      NS_LOG_INFO ("Nlsr tracer is enabled");
+    } else if(strcmp(str, "FALSE") == 0) {
+      m_EnableTracer = false;
+      NS_LOG_INFO ("Nlsr tracer is disabled");
+    }
+  } else {
+    m_EnableTracer = true;
+    NS_LOG_INFO ("Nlsr tracer is enabled");
+  }
 }
 
 NlsrTracer::~NlsrTracer() {
@@ -93,6 +109,11 @@ NlsrTracer::SetLogRollOverSize() {
 
 void 
 NlsrTracer::InitializeTracer(std::string prefix) {
+
+  if (!m_EnableTracer) {
+    return;
+  }
+
   m_prefix = prefix;
   boost::filesystem::path full_path(boost::filesystem::current_path());
   m_helloTracer = full_path.string() + "/" + m_prefix + helloTraceFile + std::to_string(m_HelloFileCount++) + ".txt";
@@ -125,6 +146,11 @@ NlsrTracer::WriteHeaders() {
 
 void
 NlsrTracer::HelloTrace(std::string arg1, std::string arg2, std::string arg3, std::string arg4, std::string arg5, std::string arg6) {
+
+  if (!m_EnableTracer) {
+    return;
+  }
+
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
@@ -144,6 +170,11 @@ NlsrTracer::HelloTrace(std::string arg1, std::string arg2, std::string arg3, std
 
 void 
 NlsrTracer::NameLsaTrace(std::string arg1, std::string arg2, std::string arg3, std::string arg4, std::string arg5, std::string arg6) {
+
+  if (!m_EnableTracer) {
+    return;
+  }
+
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
@@ -163,6 +194,11 @@ NlsrTracer::NameLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
 
 void 
 NlsrTracer::LinkLsaTrace(std::string arg1, std::string arg2, std::string arg3, std::string arg4, std::string arg5, std::string arg6) {
+
+  if (!m_EnableTracer) {
+    return;
+  }
+
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
@@ -181,6 +217,11 @@ NlsrTracer::LinkLsaTrace(std::string arg1, std::string arg2, std::string arg3, s
 
 void 
 NlsrTracer::NsyncTrace(std::string arg1, std::string arg2, std::string arg3, std::string arg4, std::string arg5, std::string arg6) {
+
+  if (!m_EnableTracer) {
+    return;
+  }
+
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
@@ -200,6 +241,11 @@ NlsrTracer::NsyncTrace(std::string arg1, std::string arg2, std::string arg3, std
 
 void 
 NlsrTracer::FibTrace(std::string arg1, std::string arg2, std::string arg3, std::string arg4, std::string arg5, std::string arg6) {
+
+  if (!m_EnableTracer) {
+    return;
+  }
+
   ns3::Ptr<ns3::Node> node = ns3::NodeList::GetNode(ns3::Simulator::GetContext());
   std::string nodeName = Names::FindName(node);
 
