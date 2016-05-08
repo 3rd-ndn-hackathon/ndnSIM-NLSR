@@ -107,6 +107,11 @@ NlsrTracer::SetLogRollOverSize() {
   }
 }
 
+bool
+NlsrTracer::IsEnabled() {
+  return m_EnableTracer;
+}
+
 void 
 NlsrTracer::InitializeTracer(std::string prefix) {
 

@@ -43,6 +43,8 @@ public:
 
   void InitializeTracer(std::string prefix);
 
+  bool IsEnabled();
+
   void 
   HelloTrace(std::string agr1 = "-", std::string agr2 = "-", std::string agr3 = "-", std::string agr4 = "-", std::string agr5 = "-", std::string agr6 = "-");
 
