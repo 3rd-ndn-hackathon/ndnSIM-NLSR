@@ -377,9 +377,10 @@ ProcessDotTopology(std::string confFile)
     std::string city = "NA";
     std::string latitude = "3";
     std::string longitude = "1";
-    std::string network = "/n";
-    std::string site = "/e";
-    std::string router = "/%C1r" + id;
+    std::string network = "/ndn";
+    std::string site = "/edu/site";
+    std::string routerPrefix = "/router/%C1r";
+    std::string routerId = routerPrefix + id;
     std::string lsaRefreshTime = nlsrConf.lsa_refresh_time;
     std::string routerDeadInterval = nlsrConf.router_dead_interval;
     std::string lsaInterestLifetime = nlsrConf.lsa_interest_lifetime;
@@ -396,8 +397,8 @@ ProcessDotTopology(std::string confFile)
     std::string angle = "1.45";
     std::string maxFacesPerPrefix = nlsrConf.max_faces_per_prefix;
     std::string routingCalcInterval = nlsrConf.routing_calc_interval;
-    std::string prefix1 = "/n/e/" + nodeId + "/p1";
-    std::string prefix2 = "/n/e/" + nodeId + "/p2";
+    std::string prefix1 = network + site + routerId + "/p1";
+    std::string prefix2 = network + site + routerId + "/p2";
 
     //NS_LOG_DEBUG ("Router: " << nodeId << " " << city << " " << latitude << " " << longitude << " " << network << " " << site << " " << router << " " << lsaRefreshTime << " " << routerDeadInterval << " " << lsaInterestLifetime << " " << logLevel << " " << logDir << " " << seqDir << " " << helloRetries << " " << helloTimeout << " " << helloInterval << " " << adjLsaBuildInterval << " " << firstHelloInterval << " " << state << " " << radius << " " << angle << " " << maxFacesPerPrefix << " " << routingCalcInterval << " " << prefix1 << " " << prefix2);
 
@@ -409,7 +410,7 @@ ProcessDotTopology(std::string confFile)
     nt.put("general.longitude", longitude);
     nt.put("general.network", network);
     nt.put("general.site", site);
-    nt.put("general.router", router);
+    nt.put("general.router", routerId);
     nt.put("general.lsa-refresh-time", lsaRefreshTime);
     nt.put("general.router-dead-interval", routerDeadInterval);
     nt.put("general.lsa-interest-lifetime", lsaInterestLifetime);
@@ -453,7 +454,8 @@ ProcessDotTopology(std::string confFile)
       std::string dstId = *li;
       dstNodeId = dstId;
       dstNodeId = "N" + dstNodeId;
-      std::string name = "/n/e/%C1r" + dstId;
+      //std::string name = "/n/e/%C1r" + dstId;
+      std::string name = network + site + routerPrefix + dstId;
       std::string faceUri = "tcp4://10.0.0." + dstId + ":6363";
       std::string linkCost = nlsrConf.link_cost;
       std::string bandwidth = nlsrConf.bandwidth;
