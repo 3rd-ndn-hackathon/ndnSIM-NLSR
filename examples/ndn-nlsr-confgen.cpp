@@ -268,7 +268,7 @@ ProcessRouterList(const std::string &file)
 }
 
 bool
-ProcessBriteTopology(std::string confFile)
+ProcessBriteTopology(std::string confFile, std::string rtType)
 {
   std::string brite_topo_file = confFile;
   ifstream topgen;
@@ -277,8 +277,7 @@ ProcessBriteTopology(std::string confFile)
   nodeConfigMap nodeMap;
   const char *homeDir = NULL;
   std::string nodeLabel;
-  std::string nlsr_topo;
-  ofstream graphvizfile;
+  //ofstream graphvizfile;
 
   if ((homeDir = getenv("HOME")) == NULL) {
       homeDir = getpwuid(getuid())->pw_dir;
@@ -305,22 +304,10 @@ ProcessBriteTopology(std::string confFile)
       break;
   }
 
-  nlsr_topo = nodeLabel + "-nlsr-topology.dot";
-  graphvizfile.open (nlsr_topo.c_str());
-  if ( !graphvizfile.is_open () || !graphvizfile.good () ) {
-    NS_FATAL_ERROR ("Cannot open file " << nlsr_topo << " for writing");
-    return false;
-  }
-
   if (topgen.eof ()) {
     NS_FATAL_ERROR ("BRITE topology config file " << brite_topo_file << " does not have \"Nodes\" section");
     return false;
   }
-
-  // Write Graphviz file header
-  graphvizfile << "graph G {" << endl;
-  graphvizfile << "label=\"" << nodeLabel << " Node Network Topology\";" << endl;
-  graphvizfile << "rankdir=LR;" << endl;
 
   // Read network 'Node' configuration.
   while (!topgen.eof ()) {
@@ -358,9 +345,19 @@ ProcessBriteTopology(std::string confFile)
     std::string helloInterval = "60";
     std::string adjLsaBuildInterval = "5";
     std::string firstHelloInterval = "10";
-    std::string state = "off";
-    std::string radius = "123.456";
-    std::string angle = "10";
+    std::string state;
+    std::string radius;
+    std::string angle;
+
+    if (rtType.compare("hb") == 0) {
+      state = "on";
+      radius = std::string("100") + id;
+      angle = id;
+    } else {
+      state = "off";
+      radius = "123.456";
+      angle = "1.45";
+    }
     std::string maxFacesPerPrefix = "3";
     std::string routingCalcInterval = "15";
     std::string prefix1 = "/n/e/" + nodeId + "/p1";
@@ -415,9 +412,6 @@ ProcessBriteTopology(std::string confFile)
       NS_FATAL_ERROR ("BRITE topology config file " << brite_topo_file << " does not have \"Edge\" section");
       return false;
     }
-
-    // Add Nodesto Graphviz (DOT) file.
-    graphvizfile << nodeId << "[width=0.1, label=\"" << nodeId <<  "\", style=filled, fillcolor=\"green\"]" << endl;
 
     linebuffer.str("");
   }
@@ -490,20 +484,14 @@ ProcessBriteTopology(std::string confFile)
       nbr.add_child("neighbor", nb);
     }
 
-    // Add Edges to Graphviz (DOT) file.
-    graphvizfile << srcNodeId << "--" << dstNodeId << "[label=\"" << linkCost << "\"]" << endl;
-
     srcNodeId.clear();
     linebuffer.str("");
   }
 
-  graphvizfile << "}" << endl; 
-  graphvizfile.close();
-
   // Generate the NLSR configuration file
   for (nodeConfigMap::iterator it = nodeMap.begin(); it != nodeMap.end(); ++it) {
     std::string filename = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_node_" + it->first + ".conf";
-    pt::write_info(filename, it->second); 
+    pt::write_info(filename, it->second);
   }
 
   // Generate topology config file.
@@ -517,7 +505,7 @@ ProcessBriteTopology(std::string confFile)
     simTree.add_child("ndn-node", nodeTree);
   }
 
-  pt::write_info(sim_config, simTree); 
+  pt::write_info(sim_config, simTree);
 
   return true;
 }
@@ -540,7 +528,7 @@ ProcessBulkConfig(std::string confFile)
     string line;
     getline (topgen, line);
 
-    if (line == "ndn-routers") 
+    if (line == "ndn-routers")
       break;
   }
 
@@ -553,9 +541,9 @@ ProcessBulkConfig(std::string confFile)
     string line;
     getline (topgen,line);
 
-    if (line[0] == ';') 
+    if (line[0] == ';')
       continue;
-    if (line == "adjacency-matrix") 
+    if (line == "adjacency-matrix")
       break;
 
     istringstream linebuffer(line);
@@ -563,7 +551,7 @@ ProcessBulkConfig(std::string confFile)
 
     linebuffer >> nodeId >> city >> latitude >> longitude >> network >> site >> router >> lsaRefreshTime >> routerDeadInterval >> lsaInterestLifetime >> logLevel >> logDir >> seqDir >> helloRetries >> helloTimeout >> helloInterval >> adjLsaBuildInterval >> firstHelloInterval >> state >> radius >> angle >> maxFacesPerPrefix >> routingCalcInterval >> prefix1 >> prefix2;
 
-    if (nodeId.empty ()) 
+    if (nodeId.empty ())
       continue;
 
     NS_LOG_DEBUG ("Router: " << nodeId << " " << city << " " << latitude << " " << longitude << " " << network << " " << site << " " << router << " " << lsaRefreshTime << " " << routerDeadInterval << " " << lsaInterestLifetime << " " << logLevel << " " << logDir << " " << seqDir << " " << helloRetries << " " << helloTimeout << " " << helloInterval << " " << adjLsaBuildInterval << " " << firstHelloInterval << " " << state << " " << radius << " " << angle << " " << maxFacesPerPrefix << " " << routingCalcInterval << " " << prefix1 << " " << prefix2);
@@ -623,14 +611,14 @@ ProcessBulkConfig(std::string confFile)
     string line;
     getline (topgen,line);
 
-    if (line[0] == ';') 
+    if (line[0] == ';')
       continue;
 
     istringstream linebuffer(line);
     std::string srcNodeId, dstNodeId, name, faceUri, linkCost, bandwidth, metric, delay, queue;
     linebuffer >> srcNodeId >> dstNodeId >> name >> faceUri >> linkCost >> bandwidth >> metric >> delay >> queue;
 
-    if (srcNodeId.empty ()) 
+    if (srcNodeId.empty ())
       continue;
 
     NS_LOG_DEBUG ("Adjacent router: " << srcNodeId << " " << dstNodeId << " " << name << " " << faceUri << " " << linkCost << " " << bandwidth << " " << metric << " " << delay << " " << queue);
@@ -658,7 +646,7 @@ ProcessBulkConfig(std::string confFile)
   // Generate the NLSR configuration file
   for (nodeConfigMap::iterator it = nodeMap.begin(); it != nodeMap.end(); ++it) {
     std::string filename = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_node_" + it->first + ".conf";
-    pt::write_info(filename, it->second); 
+    pt::write_info(filename, it->second);
   }
 
   // Generate topology config file.
@@ -673,7 +661,7 @@ ProcessBulkConfig(std::string confFile)
     simTree.add_child("ndn-node", nodeTree);
   }
 
-  pt::write_info(sim_config, simTree); 
+  pt::write_info(sim_config, simTree);
 
   return true;
 }
@@ -683,12 +671,37 @@ main (int argc, char *argv[])
 {
 
   const char *homeDir = NULL;
+  std::string type = "linkstate";
+  int c;
 
   if ((homeDir = getenv("HOME")) == NULL) {
       homeDir = getpwuid(getuid())->pw_dir;
   }
 
   std::string topo_file = "src/ndnSIM/examples/ndn-nlsr-conf/nlsr_router_topo.brite";
+
+  //std::string topo_file = std::string(homeDir) + "/sandbox/creepyCode/networkx/scalefree_topo.dot";
+
+  opterr = 0;
+  while ((c = getopt (argc, argv, "at:")) != -1)
+    switch (c) {
+      case 'a':
+        break;
+      case 't':
+        type = std::string(optarg);
+	if (type.compare("ls") == 0 || type.compare("hb") == 0) {
+          type = std::string(optarg);
+	} else {
+          printf ("Unknown routing type `%s'.\n", optarg);
+	  return 1;
+        }
+        break;
+      case '?':
+        printf ("Unknown option `-%c'.\n", optopt);
+        return 1;
+      default:
+        abort ();
+  }
 
 #if 0
   std::cout << "No of arguments are: " << argc << endl;
@@ -719,7 +732,7 @@ main (int argc, char *argv[])
   if(!ProcessCommonConfig())
     return -1;
 
-  ProcessBriteTopology(topo_file);
+  ProcessBriteTopology(topo_file, type);
   return 0;
 }
 
@@ -730,4 +743,3 @@ main(int argc, char* argv[])
 {
   return ns3::main(argc, argv);
 }
-
