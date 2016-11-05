@@ -351,7 +351,7 @@ ProcessBriteTopology(std::string confFile, std::string rtType)
 
     if (rtType.compare("hb") == 0) {
       state = "on";
-      radius = std::string("100") + id;
+      radius = std::string("10") + id;
       angle = id;
     } else {
       state = "off";
