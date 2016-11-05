@@ -16,9 +16,28 @@ def options(opt):
     opt.load(['version'], tooldir=['%s/.waf-tools' % opt.path.abspath()])
     opt.load(['doxygen', 'sphinx_build', 'type_traits', 'compiler-features', 'cryptopp', 'sqlite3'],
              tooldir=['%s/ndn-cxx/.waf-tools' % opt.path.abspath()])
+    opt.load(['default-compiler-flags', 'coverage',
+              'boost', 'protoc', 'openssl',
+              'doxygen', 'sphinx_build'], tooldir=['%s/NLSR/.waf-tools' % opt.path.abspath()])
 
 def configure(conf):
     conf.load(['doxygen', 'sphinx_build', 'type_traits', 'compiler-features', 'version', 'cryptopp', 'sqlite3'])
+    conf.load(['compiler_cxx', 'gnu_dirs', 'boost', 'openssl', 'default-compiler-flags', 'doxygen', 'sphinx_build'])
+
+    if 'PKG_CONFIG_PATH' not in os.environ:
+        os.environ['PKG_CONFIG_PATH'] = Utils.subst_vars('${LIBDIR}/pkgconfig', conf.env)
+
+    conf.check_cfg(package='libndn-cxx', args=['--cflags', '--libs'],
+                   uselib_store='NDN_CXX', mandatory=True)
+
+    conf.check_cfg(package='liblog4cxx', args=['--cflags', '--libs'],
+                   uselib_store='LOG4CXX', mandatory=True)
+
+    conf.check_openssl(mandatory=True)
+
+    conf.load('protoc')
+
+    conf.load('coverage')
 
     conf.env['ENABLE_NDNSIM']=False
 
@@ -76,12 +95,23 @@ def configure(conf):
 
     conf.write_config_header('../../ns3/ndnSIM/ndn-cxx/ndn-cxx-config.hpp', define_prefix='NDN_CXX_', remove=False)
     conf.write_config_header('../../ns3/ndnSIM/NFD/config.hpp', remove=False)
+    conf.write_config_header('../../ns3/ndnSIM/NLSR/config.hpp', remove=False)
 
 def build(bld):
     (base, build, split) = bld.getVersion('NFD')
     bld(features="subst",
         name="version-NFD",
         source='NFD/version.hpp.in', target='../../ns3/ndnSIM/NFD/version.hpp',
+        install_path=None,
+        VERSION_STRING=base,
+        VERSION_BUILD="%s-ndnSIM" % build,
+        VERSION=int(split[0]) * 1000000 + int(split[1]) * 1000 + int(split[2]),
+        VERSION_MAJOR=split[0], VERSION_MINOR=split[1], VERSION_PATCH=split[2])
+
+    (base, build, split) = bld.getVersion('NLSR')
+    bld(features="subst",
+        name="version-NLSR",
+        source='NLSR/src/version.hpp.in', target='../../ns3/ndnSIM/NLSR/version.hpp',
         install_path=None,
         VERSION_STRING=base,
         VERSION_BUILD="%s-ndnSIM" % build,
@@ -120,12 +150,19 @@ def build(bld):
                                      'NFD/daemon/face/websocket*',
                                      'NFD/rib/nrd.cpp'])
 
+    nsyncSrc = bld.path.ant_glob(['%s/**/*.cc' % dir for dir in ['NLSR']])
+
+    nlsrSrc = bld.path.ant_glob(['%s/**/*.cpp' % dir for dir in ['NLSR/src']],
+                               excl=['NLSR/src/main.cpp',
+                                     'NLSR/src/nlsr-runner.cpp',
+                                     'NLSR/src/logger.cpp'])
+
     module = bld.create_ns3_module('ndnSIM', deps)
     module.module = 'ndnSIM'
     module.features += ' ns3fullmoduleheaders ndncxxheaders'
-    module.use += ['version-ndn-cxx', 'version-NFD', 'BOOST', 'CRYPTOPP', 'SQLITE3', 'RT', 'PTHREAD']
-    module.includes = ['../..', '../../ns3/ndnSIM/NFD', './NFD/core', './NFD/daemon', './NFD/rib', '../../ns3/ndnSIM', '../../ns3/ndnSIM/ndn-cxx']
-    module.export_includes = ['../../ns3/ndnSIM/NFD', './NFD/core', './NFD/daemon', './NFD/rib', '../../ns3/ndnSIM']
+    module.use += ['version-ndn-cxx', 'version-NFD', 'version-NLSR', 'OPENSSL', 'BOOST', 'CRYPTOPP', 'SQLITE3', 'RT', 'PTHREAD', 'PROTOBUF']
+    module.includes = ['../..', '../../ns3/ndnSIM/NFD', './NFD/core', './NFD/daemon', './NFD/rib', '../../ns3/ndnSIM', '../../ns3/ndnSIM/ndn-cxx', '../../ns3/ndnSIM/NLSR', './NLSR/src', './NLSR/nsync', './NLSR']
+    module.export_includes = ['../../ns3/ndnSIM/NFD', './NFD/core', './NFD/daemon', './NFD/rib', '../../ns3/ndnSIM', '../../ns3/ndnSIM/NLSR', './NLSR/src', './NLSR/nsync', './NLSR']
 
     headers = bld(features='ns3header')
     headers.module = 'ndnSIM'
@@ -137,12 +174,12 @@ def build(bld):
 
     module_dirs = ['apps', 'helper', 'model', 'utils']
     module.source = bld.path.ant_glob(['%s/**/*.cpp' % dir for dir in module_dirs],
-                                      excl=[
-                                          'model/ip-faces/*']) + ndnCxxSrc + nfdSrc
+                                      excl=['model/ip-faces/*']) + ndnCxxSrc + nfdSrc + nsyncSrc + nlsrSrc
 
-    module_dirs = ['NFD/core', 'NFD/daemon', 'NFD/rib', 'apps', 'helper', 'model', 'utils']
+    module_dirs = ['NFD/core', 'NFD/daemon', 'NFD/rib', 'apps', 'helper', 'model', 'utils', 'NLSR', 'NLSR/src']
     module.full_headers = bld.path.ant_glob(['%s/**/*.hpp' % dir for dir in module_dirs])
     module.full_headers += bld.path.ant_glob('NFD/common.hpp')
+    module.full_headers += bld.path.ant_glob(['%s/**/*.h' % dir for dir in ['NLSR']])
 
     module.ndncxx_headers = bld.path.ant_glob(['ndn-cxx/src/**/*.hpp'],
                                               excl=['src/**/*-osx.hpp', 'src/detail/**/*'])
