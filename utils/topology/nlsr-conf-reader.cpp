@@ -50,7 +50,6 @@
 #include "ns3/uinteger.h"
 #include "ns3/ipv4-address.h"
 #include "model/ndn-l3-protocol.hpp"
-#include "model/ndn-face.hpp"
 #include "ns3/random-variable-stream.h"
 #include "ns3/error-model.h"
 #include "ns3/double.h"
