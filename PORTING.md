@@ -2,35 +2,35 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#orge26e61c">1. Porting efforts of NLSR to ndnSIM for the 3rd NDN Hackathon</a>
+<li><a href="#orga1a7afb">1. Porting efforts of NLSR to ndnSIM for the 3rd NDN Hackathon</a>
 <ul>
-<li><a href="#orgdc20a61">1.1. Code rebasing</a></li>
+<li><a href="#orgbeb84fd">1.1. Code rebasing</a></li>
 </ul>
 </li>
-<li><a href="#orgc13f2fa">2. Getting ndnSIM with NLSR</a>
+<li><a href="#orgea224d3">2. Getting ndnSIM with NLSR</a>
 <ul>
-<li><a href="#orga68d172">2.1. Downloading ndnSIM with NLSR source</a></li>
-<li><a href="#org4372cda">2.2. Building</a></li>
-<li><a href="#orgfb2f9d2">2.3. Configuring NLSR to run on ndnSIM</a>
+<li><a href="#org2f35b0a">2.1. Downloading ndnSIM with NLSR source</a></li>
+<li><a href="#org9351d8a">2.2. Building</a></li>
+<li><a href="#orgb231061">2.3. Configuring NLSR to run on ndnSIM</a>
 <ul>
-<li><a href="#org7e40076">2.3.1. Generating the topology</a></li>
-<li><a href="#org9f3b50c">2.3.2. Selecting LS or HR</a></li>
-<li><a href="#org8b12cf1">2.3.3. Convenient script</a></li>
+<li><a href="#orga037a71">2.3.1. Generating the topology</a></li>
+<li><a href="#org50da3b9">2.3.2. Selecting LS or HR</a></li>
+<li><a href="#orgcf10299">2.3.3. Convenient script</a></li>
 </ul>
 </li>
-<li><a href="#org5fd48e3">2.4. Running an experiment</a></li>
+<li><a href="#org02bf806">2.4. Running an experiment</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 
-<a id="orge26e61c"></a>
+<a id="orga1a7afb"></a>
 
 # Porting efforts of NLSR to ndnSIM for the 3rd NDN Hackathon
 
 
-<a id="orgdc20a61"></a>
+<a id="orgbeb84fd"></a>
 
 ## Code rebasing
 
@@ -41,12 +41,12 @@
 -   NFD v0.3.4 to v0.4.1
 
 
-<a id="orgc13f2fa"></a>
+<a id="orgea224d3"></a>
 
 # Getting ndnSIM with NLSR
 
 
-<a id="orga68d172"></a>
+<a id="org2f35b0a"></a>
 
 ## Downloading ndnSIM with NLSR source
 
@@ -59,21 +59,21 @@ Downloading and building ndnSIM with NLSR is not hard:
 5.  `git clone --recursive https://github.com/3rd-ndn-hackathon/ndnSIM-NLSR.git ns-3/src/ndnSIM`
 
 
-<a id="org4372cda"></a>
+<a id="org9351d8a"></a>
 
 ## Building
 
 The instructions to build from this point onward are exactly the same as listed here: <http://ndnsim.net/2.1/getting-started.html#compiling-and-running-ndnsim>   
 
 
-<a id="orgfb2f9d2"></a>
+<a id="orgb231061"></a>
 
 ## Configuring NLSR to run on ndnSIM
 
 In order to use NLSR in experiments, you need topology files, and then configuration files for each node running NLSR in that topology.
 
 
-<a id="org7e40076"></a>
+<a id="orga037a71"></a>
 
 ### Generating the topology
 
@@ -86,7 +86,7 @@ Assuming that all paths are from the base ns-3 directory (e.g. `/home/nmg/ns-3/`
     2.  For HR mode, use `./waf --run=​"ndn-nlsr-confgen -t hb"`
 
 
-<a id="org9f3b50c"></a>
+<a id="org50da3b9"></a>
 
 ### Selecting LS or HR
 
@@ -99,14 +99,16 @@ If the configs were generated for HR mode, the defaults are:
 E.g. if `nodeId = 1`, then `radius = 101`, `angle = 1`.
 
 
-<a id="org8b12cf1"></a>
+<a id="orgcf10299"></a>
 
 ### Convenient script
 
-For your convenience, a perl script has been written that wraps these commands into a simple format. From within the 
+For your convenience, a perl script has been written that wraps these commands into a simple format. From within the ndnSIM directory:
+
+`perl nlsr-experiment.pl <absolute-path-to-topology-file> <hr/ls>`
 
 
-<a id="org5fd48e3"></a>
+<a id="org02bf806"></a>
 
 ## Running an experiment
 
