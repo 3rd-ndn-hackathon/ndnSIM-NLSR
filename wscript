@@ -20,9 +20,18 @@ def options(opt):
               'boost', 'protoc', 'openssl',
               'doxygen', 'sphinx_build'], tooldir=['%s/NLSR/.waf-tools' % opt.path.abspath()])
 
+    opt.add_option('--enable-nlsr',
+                   help=('Compile NS-3 with NLSR simulation support'),
+                   dest='enable_nlsr', action='store_true',
+                   default=False)
+
 def configure(conf):
     conf.load(['doxygen', 'sphinx_build', 'type_traits', 'compiler-features', 'version', 'cryptopp', 'sqlite3'])
     conf.load(['compiler_cxx', 'gnu_dirs', 'boost', 'openssl', 'default-compiler-flags', 'doxygen', 'sphinx_build'])
+
+    if Options.options.enable_nlsr:
+        conf.env['NLSR_ENABLED'] = True
+	conf.env['DEFINES'].append('NS3_NLSR_SIM')
 
     if 'PKG_CONFIG_PATH' not in os.environ:
         os.environ['PKG_CONFIG_PATH'] = Utils.subst_vars('${LIBDIR}/pkgconfig', conf.env)
@@ -151,6 +160,7 @@ def build(bld):
                                      'NFD/rib/nrd.cpp'])
 
     nsyncSrc = bld.path.ant_glob(['%s/**/*.cc' % dir for dir in ['NLSR']])
+    protoSrc = bld.path.ant_glob(['%s/nsync/**/*.proto' % dir for dir in ['NLSR']])
 
     nlsrSrc = bld.path.ant_glob(['%s/**/*.cpp' % dir for dir in ['NLSR/src']],
                                excl=['NLSR/src/main.cpp',
@@ -174,7 +184,7 @@ def build(bld):
 
     module_dirs = ['apps', 'helper', 'model', 'utils']
     module.source = bld.path.ant_glob(['%s/**/*.cpp' % dir for dir in module_dirs],
-                                      excl=['model/ip-faces/*']) + ndnCxxSrc + nfdSrc + nsyncSrc + nlsrSrc
+                                      excl=['model/ip-faces/*']) + ndnCxxSrc + nfdSrc + protoSrc + nsyncSrc + nlsrSrc
 
     module_dirs = ['NFD/core', 'NFD/daemon', 'NFD/rib', 'apps', 'helper', 'model', 'utils', 'NLSR', 'NLSR/src']
     module.full_headers = bld.path.ant_glob(['%s/**/*.hpp' % dir for dir in module_dirs])
