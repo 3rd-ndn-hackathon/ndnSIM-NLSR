@@ -63,16 +63,11 @@ Downloading and building ndnSIM with NLSR is not hard:
 
 ## Building
 
-There are two files that need to be fetched from an independent NLSR build:
-
-1.  Compile NLSR version v0.3.0 somewhere
-2.  From that directory, copy `nsync/sync-state.pb.cc` and
-    `nsync/sync-state.pb.h` to the `<ns-3-folder>/ndnSIM/NLSR/nsync` directory.
-
-The instructions to build from this point onward are exactly the
-same as listed here:
+The procedure to build this NLSR simulation port are exactly the
+same as listed here, except providing an additional configure time option (please note the exact command below).  
 <http://ndnsim.net/2.1/getting-started.html#compiling-and-running-ndnsim>
 
+./waf configure --enable-examples --enable-nlsr
 
 <a id="orgeaaad34"></a>
 
